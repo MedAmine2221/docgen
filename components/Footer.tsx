@@ -10,7 +10,7 @@ const SITE_MAP = [
 ];
 
 const LEGAL = [
-  { label: "Contacter l'admin", href: "#" },
+  { label: "Contacter Admin", href: "/contact-admin" },
  
 ];
 
