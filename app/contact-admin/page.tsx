@@ -1,10 +1,9 @@
 "use client";;
 import Image from "next/image";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 export default function ContactAdmin() {
-  const router = useRouter();
   const [lastName, setLastName] = useState("");
   const [firstName, setFirstName] = useState("");
   const [email, setEmail] = useState("");
@@ -40,15 +39,17 @@ export default function ContactAdmin() {
           <div className="px-10 pt-10 pb-12">
             {/* Logo + title */}
             <div className="flex flex-col items-center mb-10">
-              <Image
-                src="/logo-warning.png"
-                alt="Warning Group"
-                width={64}
-                height={64}
-                className="mb-4 object-contain"
-                priority
-                loading="eager"
-              />
+                <Link href={"/"}>
+                    <Image
+                      src="/logo-warning.png"
+                      alt="Warning Group"
+                      width={64}
+                      height={64}
+                      className="mb-4 object-contain"
+                      priority
+                      loading="eager"
+                    />
+                </Link>
               <h1 className="text-2xl font-bold tracking-tight text-neutral-900">
                 Contacter Administrateur
               </h1>
