@@ -15,8 +15,8 @@ export async function login({ username, password }: AuthParams) {
         const data = await response.json();
         if (!response.ok) {
             throw new Error(data.message || "Login failed");
-        }
-        
+        }        
+        localStorage.setItem("token", data.accessToken)
         return data        
     }
     catch (error) {

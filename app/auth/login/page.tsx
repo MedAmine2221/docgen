@@ -18,9 +18,7 @@ export default function Login() {
     setLoading(true);
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
-    const data = await login({username, password})
-    console.log(data);
-    
+    const data = await login({username, password})    
     dispatch(setUserCredentials(
       {
         user: data,

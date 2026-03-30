@@ -13,7 +13,6 @@ export default function ContactAdmin() {
   const sendEmail = async () => {
     try {
         setLoading(true);
-        console.log("hello world");
     } catch (error) {
         console.error(error);
     } finally {
