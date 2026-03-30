@@ -10,9 +10,8 @@ const SITE_MAP = [
 ];
 
 const LEGAL = [
-  { label: "Politique de confidentialité", href: "#" },
-  { label: "Conditions d'utilisation", href: "#" },
-  { label: "Mentions légales", href: "#" },
+  { label: "Contacter l'admin", href: "#" },
+ 
 ];
 
 const SOCIALS = [
@@ -97,7 +96,7 @@ export default function Footer() {
             {/* Legal */}
             <div>
               <p className="text-xs font-semibold uppercase tracking-widest text-[#c5262e] mb-4">
-                Légal
+                Contact 
               </p>
               <ul className="space-y-2.5">
                 {LEGAL.map(({ label, href }) => (
