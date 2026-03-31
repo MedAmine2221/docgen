@@ -24,6 +24,7 @@ export default function Login() {
         user: data,
       }
     ))
+    router.replace("/admin")
   };
 
   return (

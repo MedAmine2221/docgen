@@ -1,7 +1,8 @@
-import type { Metadata } from "next";
+import AuthGuard from "@/providers/authGuard";
 import "./globals.css";
 import Footer from "@/components/Footer";
 import StoreProviders from "@/providers/storeProvider";
+import { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "DocGen",
@@ -10,12 +11,12 @@ export const metadata: Metadata = {
     icon: "/logo-warning.png"
   }
 };
-
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+
   return (
     <html lang="en">
       <body 
@@ -23,8 +24,10 @@ export default function RootLayout({
         cz-shortcut-listen="true"
       >
         <StoreProviders>
-          {children}
-          <Footer />
+          <AuthGuard>
+            {children}
+            <Footer />
+          </AuthGuard>
         </StoreProviders>
       </body>
     </html>
