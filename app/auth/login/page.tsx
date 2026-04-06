@@ -1,30 +1,43 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/redux/actions/auth/login";
-import { setUserCredentials } from "@/redux/slice/userReducer";
 import { useDispatch } from "react-redux";
+import { setUserCredentials } from "@/redux/slice/userReducer";
 
 export default function Login() {
   const router = useRouter();
   const dispatch = useDispatch();
-  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    await new Promise((r) => setTimeout(r, 1200));
-    setLoading(false);
-    const data = await login({username, password})    
-    dispatch(setUserCredentials(
-      {
-        user: data,
+    setError(null);
+    try {
+      const data = await login({ email, password });
+      
+      // ✅ Vérifier si le serveur retourne une erreur dans data
+      if (
+        data === "password or email incorrect"
+      ) {
+        setError("Identifiants incorrects. Veuillez réessayer.");
+        return;
       }
-    ))
-    router.replace("/admin")
+
+      dispatch(setUserCredentials({ user: data }));
+      router.replace("/admin");
+    } catch (err) {
+      setError("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -72,8 +85,8 @@ export default function Login() {
                   id="username"
                   type="text"
                   required
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
                   placeholder="john_doe"
                   className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 bg-neutral-50
                              text-neutral-900 text-sm placeholder:text-neutral-400
@@ -158,6 +171,18 @@ export default function Login() {
                 {loading ? "Connexion…" : "Se connecter"}
               </button>
             </form>
+            {error && (
+              <div className="flex items-center gap-2 rounded-lg border border-red-200
+                              bg-red-50 px-4 py-2.5 text-sm text-red-700 mt-5">
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0"
+                    fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round"
+                        d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64
+                          a1 1 0 00.86-1.5L13.71 3.86a2 2 0 00-3.42 0z" />
+                </svg>
+                {error}
+              </div>
+            )}
           </div>
         </div>
       </div>
