@@ -1,0 +1,3 @@
+const AVATAR_COLORS = ["#c5262e", "#185FA5", "#0F6E56", "#854F0B", "#534AB7"];
+
+export { AVATAR_COLORS}

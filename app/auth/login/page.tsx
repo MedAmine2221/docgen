@@ -5,6 +5,8 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/redux/actions/auth/login";
 import { useDispatch } from "react-redux";
+import { setProfilCredentials } from "@/redux/slice/profilReducer";
+import { getUsers } from "@/redux/actions/users/getUsers";
 import { setUserCredentials } from "@/redux/slice/userReducer";
 
 export default function Login() {
@@ -31,7 +33,9 @@ export default function Login() {
         return;
       }
 
-      dispatch(setUserCredentials({ user: data }));
+      dispatch(setProfilCredentials({ profil: data }));
+      const userData = await getUsers();      
+      dispatch(setUserCredentials({ users: userData }));
       router.replace("/admin");
     } catch (err) {
       setError("Une erreur est survenue. Veuillez réessayer.");

@@ -1,5 +1,5 @@
-export default function DashboardAdmin() {
-  return (
-    <div>Hello World</div>
-  )
+import { redirect } from "next/navigation";
+
+export default function AdminPage() {
+  redirect("/admin/users");
 }

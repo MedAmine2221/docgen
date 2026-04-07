@@ -1,5 +1,5 @@
 export default function DashboardDeveloper() {
   return (
-    <div>Hello World</div>
+    <div>Hello World from dev</div>
   )
 }
