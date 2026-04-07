@@ -6,8 +6,8 @@ import { useRouter } from "next/navigation";
 import { login } from "@/redux/actions/auth/login";
 import { useDispatch } from "react-redux";
 import { setProfilCredentials } from "@/redux/slice/profilReducer";
-import { getUsers } from "@/redux/actions/users/getUsers";
 import { setUserCredentials } from "@/redux/slice/userReducer";
+import { fetchUsers } from "@/redux/actions/users/getUsers";
 
 export default function Login() {
   const router = useRouter();
@@ -34,7 +34,7 @@ export default function Login() {
       }
 
       dispatch(setProfilCredentials({ profil: data }));
-      const userData = await getUsers();      
+      const userData = await fetchUsers();      
       dispatch(setUserCredentials({ users: userData }));
       router.replace("/admin");
     } catch (err) {
