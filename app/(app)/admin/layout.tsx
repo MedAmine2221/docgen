@@ -1,30 +1,29 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { Spinner } from "@/components/AppSpinner";
+import { Modal } from "@/components/ConfirmModal";
 import { IconLogout } from "@/components/icons/IconLogout";
 import { NAV_BOTTOM, NAV_ITEMS } from "@/constant";
-import { getInitials } from "@/utils/functions";
+import { getInitials, handleLogout } from "@/utils/functions";
 import { useRouter, usePathname } from "next/navigation";
+import { useState } from "react";
 import { useSelector } from "react-redux";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.dispatchEvent(new Event("tokenChange"));
-    router.replace("/auth/login");
-  };
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   const isActive = (path: string) => pathname.startsWith(path);
   const profil = useSelector((state: any)=> state.profil?.profil)?.userInfo;  
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
 
-      <aside className="w-56 bg-white border-r border-neutral-100 flex flex-col flex-shrink-0">
+      <aside className="w-56 bg-white border-r border-neutral-100 flex flex-col shrink-0">
 
         {/* Logo */}
         <div className="px-4 py-5 border-b border-neutral-100 flex items-center gap-3">
-          <div className="w-8 h-8 rounded-lg bg-[#c5262e] flex items-center justify-center flex-shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-[#c5262e] flex items-center justify-center shrink-0">
             <button onClick={()=> router.push("/admin")} className="cursor-pointer text-white text-xs font-semibold">DG</button>
           </div>
           <div>
@@ -80,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Logout */}
         <div className="p-2 border-t border-neutral-100">
           <button
-            onClick={handleLogout}
+            onClick={()=> setShowConfirmLogout(true)}
             className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-400
                        hover:bg-red-50 hover:text-red-600 transition-colors text-left"
           >
@@ -112,6 +111,35 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </main>
 
       </div>
+      <Modal
+        open={showConfirmLogout}
+        onClose={() => setShowConfirmLogout(false)}
+        title="Déconnecter"
+        footer={
+          <>
+            <button
+              onClick={() => setShowConfirmLogout(false)}
+              className="px-4 py-2 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={()=>handleLogout(setSaving, router)}
+              disabled={saving}
+              className="px-4 py-2 text-sm rounded-lg bg-red-500 text-white font-medium
+                         hover:bg-red-600 disabled:opacity-60 transition flex items-center gap-2"
+            >
+              {saving && <Spinner white />}
+              Déconnecter
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-neutral-600">
+          Voulez-vous vraiment Déconnecter <br/>
+          Cette action est irréversible.
+        </p>
+      </Modal>
     </div>
   );
 }

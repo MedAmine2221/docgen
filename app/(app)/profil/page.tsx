@@ -5,29 +5,23 @@ import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/AppSpinner";
 import { FiUser, FiMail, FiShield, FiLogOut, FiLock, FiCheck } from "react-icons/fi";
-import { getColor, getInitials } from "@/utils/functions";
+import { getColor, getInitials, handleLogout } from "@/utils/functions";
 import { PasswordField } from "@/components/PasswordField";
 import { changeUserPassword } from "@/redux/actions/users/changeUserPassword";
-
-
+import { Modal } from "@/components/ConfirmModal";
 
 export default function Profil() {
   const dispatch = useDispatch();
   const router = useRouter();
   const profil = useSelector((state: any) => state.profil?.profil)?.userInfo;
-
+  const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [saving, setSaving] = useState(false);
+
   const [success, setSuccess] = useState(false);
   const [showCurrent, setShowCurrent] = useState(false);
   const [showNew, setShowNew] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [error, setError] = useState("");
-
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    window.dispatchEvent(new Event("tokenChange"));
-    router.replace("/auth/login");
-  };
 
   const handleChangePassword = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -61,7 +55,7 @@ export default function Profil() {
       await new Promise((r) => setTimeout(r, 800)); // ← remove when wired up
       setSuccess(true);
       localStorage.removeItem("token");
-      router.replace("/auth/login")
+      router.replace("/auth/login");
       (e.target as HTMLFormElement).reset();
     } catch {
       setError("Mot de passe actuel incorrect.");
@@ -77,7 +71,7 @@ export default function Profil() {
       {/* ── Profile card ─────────────────────────────────────────────── */}
       <div className="bg-white rounded-xl border border-neutral-100 overflow-hidden">
         {/* Banner */}
-        <div className="h-24 bg-gradient-to-r from-[#c5262e]/10 via-[#c5262e]/5 to-transparent" />
+        <div className="h-24 bg-linear-to-r from-[#c5262e]/10 via-[#c5262e]/5 to-transparent" />
 
         <div className="px-6 pb-6 -mt-10">
           {/* Avatar */}
@@ -205,7 +199,7 @@ export default function Profil() {
             </p>
           </div>
           <button
-            onClick={handleLogout}
+            onClick={()=> setShowConfirmLogout(true)}
             className="flex items-center gap-2 px-4 py-2 text-sm rounded-lg border border-red-200
                        text-red-500 hover:bg-red-50 hover:text-red-600 transition font-medium"
           >
@@ -214,6 +208,35 @@ export default function Profil() {
           </button>
         </div>
       </div>
+      <Modal
+        open={showConfirmLogout}
+        onClose={() => setShowConfirmLogout(false)}
+        title="Déconnecter"
+        footer={
+          <>
+            <button
+              onClick={() => setShowConfirmLogout(false)}
+              className="px-4 py-2 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
+            >
+              Annuler
+            </button>
+            <button
+              onClick={()=>handleLogout(setSaving, router)}
+              disabled={saving}
+              className="px-4 py-2 text-sm rounded-lg bg-red-500 text-white font-medium
+                         hover:bg-red-600 disabled:opacity-60 transition flex items-center gap-2"
+            >
+              {saving && <Spinner white />}
+              Déconnecter
+            </button>
+          </>
+        }
+      >
+        <p className="text-sm text-neutral-600">
+          Voulez-vous vraiment Déconnecter <br/>
+          Cette action est irréversible.
+        </p>
+      </Modal>
     </div>
   );
 }
