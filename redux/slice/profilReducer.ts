@@ -16,7 +16,7 @@ export const profilSlice = createSlice({
   reducers: {
     // Action pour enregistrer les infos après le login
     setProfilCredentials: (state, action: PayloadAction<{ profil: any; }>) => {
-      state.profil = action.payload;
+      state.profil = action.payload.profil;
     },
     // Action pour la déconnexion
     logout: (state) => {

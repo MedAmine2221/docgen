@@ -24,7 +24,7 @@ export async function login({ email, password }: AuthParams) {
         }
 
         localStorage.setItem("token", data.access_token);
-        return data.access_token;
+        return data;
 
     } catch (error) {
         console.error("Error:", error);

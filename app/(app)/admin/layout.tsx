@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useRouter, usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
 
 // ─── Icons ────────────────────────────────────────────────────────────────────
 
@@ -55,7 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   };
 
   const isActive = (path: string) => pathname.startsWith(path);
-
+  const profil = useSelector((state: any)=> state.profil?.profil)?.userInfo;  
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
 
@@ -69,7 +71,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </div>
           <div>
             <p className="text-sm font-semibold text-neutral-900 leading-tight">DocGen</p>
-            <p className="text-xs text-neutral-400 leading-tight">Admin</p>
+            <p className="text-xs text-neutral-400 leading-tight">{profil?.name}</p>
+            <p className="text-xs text-neutral-400 leading-tight">{profil?.role.name_eng}</p>
           </div>
         </div>
 
@@ -138,10 +141,10 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             {[...NAV_ITEMS, ...NAV_BOTTOM].find(i => isActive(i.path))?.label ?? "Dashboard"}
           </span>
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-[#c5262e]/10 flex items-center justify-center
+            <button onClick={()=> router.push("/profil")} className="cursor-pointer w-8 h-8 rounded-full bg-[#c5262e]/10 flex items-center justify-center
                             text-xs font-semibold text-[#c5262e]">
-              MA
-            </div>
+              {profil?.name?.split(" ").reduce((a: string, b: string)=> a + b[0], "")}
+            </button>
           </div>
         </header>
 

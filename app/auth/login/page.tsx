@@ -26,9 +26,7 @@ export default function Login() {
     setError(null);
     try {
       const data = await login({ email, password });
-      const tokenDecoded = jwtDecode(data)
-      console.log("tokenDecoded ",tokenDecoded?.role?.id);
-      
+      const tokenDecoded = jwtDecode(data.access_token)      
       if (
         data === "password or email incorrect"
       ) {
