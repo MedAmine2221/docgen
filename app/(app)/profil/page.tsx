@@ -1,16 +1,18 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/AppSpinner";
-import { FiEye, FiEyeOff, FiUser, FiMail, FiShield, FiLogOut, FiLock, FiCheck } from "react-icons/fi";
+import { FiUser, FiMail, FiShield, FiLogOut, FiLock, FiCheck } from "react-icons/fi";
 import { getColor, getInitials } from "@/utils/functions";
 import { PasswordField } from "@/components/PasswordField";
+import { changeUserPassword } from "@/redux/actions/users/changeUserPassword";
 
 
 
 export default function Profil() {
+  const dispatch = useDispatch();
   const router = useRouter();
   const profil = useSelector((state: any) => state.profil?.profil)?.userInfo;
 
@@ -52,8 +54,14 @@ export default function Profil() {
     setSaving(true);
     try {
       // await dispatch(changePassword({ currentPassword, newPassword })).unwrap();
+      await dispatch(changeUserPassword({
+        id: profil.id,
+        data: { oldPassword: currentPassword, newPassword: confirmPassword }
+      })).unwrap();
       await new Promise((r) => setTimeout(r, 800)); // ← remove when wired up
       setSuccess(true);
+      localStorage.removeItem("token");
+      router.replace("/auth/login")
       (e.target as HTMLFormElement).reset();
     } catch {
       setError("Mot de passe actuel incorrect.");
@@ -137,8 +145,6 @@ export default function Profil() {
         <form onSubmit={handleChangePassword} className="p-5 space-y-4">
           {/* Current password */}
           <PasswordField
-            value={""}
-            onchange={()=>{}}
             name="currentPassword"
             label="Mot de passe actuel"
             show={showCurrent}
@@ -147,8 +153,6 @@ export default function Profil() {
 
           {/* New password */}
           <PasswordField
-            value={""}
-            onchange={()=>{}}
             name="newPassword"
             label="Nouveau mot de passe"
             show={showNew}
@@ -157,8 +161,6 @@ export default function Profil() {
 
           {/* Confirm password */}
           <PasswordField
-            value={""}
-            onchange={()=>{}}
             name="confirmPassword"
             label="Confirmer le nouveau mot de passe"
             show={showConfirm}
