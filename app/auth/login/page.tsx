@@ -10,6 +10,7 @@ import { setUserCredentials } from "@/redux/slice/userReducer";
 import { fetchUsers } from "@/redux/actions/users/getUsers";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { jwtDecode } from "jwt-decode";
+import { PasswordField } from "@/components/PasswordField";
 
 export default function Login() {
   const router = useRouter();
@@ -120,7 +121,7 @@ export default function Login() {
                   </button>
                 </div>
                 <div className="relative">
-                  <input
+                  {/* <input
                     id="password"
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
@@ -132,6 +133,14 @@ export default function Login() {
                                text-neutral-900 text-sm placeholder:text-neutral-400
                                focus:outline-none focus:ring-2 focus:ring-[#c5262e]/40 focus:border-[#c5262e]
                                transition"
+                  /> */}
+                  <PasswordField
+                    value={password}
+                    onchange={(e) => setPassword(e.target.value)}
+                    name="password"
+                    label=""
+                    show={showPassword}
+                    onToggle={() => setShowPassword((v) => !v)}
                   />
                   <button
                     type="button"

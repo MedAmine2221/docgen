@@ -2,6 +2,7 @@
 "use client";
 import { IconLogout } from "@/components/icons/IconLogout";
 import { NAV_BOTTOM, NAV_ITEMS } from "@/constant";
+import { getInitials } from "@/utils/functions";
 import { useRouter, usePathname } from "next/navigation";
 import { useSelector } from "react-redux";
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -100,7 +101,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           <div className="flex items-center gap-3">
             <button onClick={()=> router.push("/profil")} className="cursor-pointer w-8 h-8 rounded-full bg-[#c5262e]/10 flex items-center justify-center
                             text-xs font-semibold text-[#c5262e]">
-              {profil?.name?.split(" ").reduce((a: string, b: string)=> a + b[0], "")}
+              {getInitials(profil?.name ?? "")}
             </button>
           </div>
         </header>

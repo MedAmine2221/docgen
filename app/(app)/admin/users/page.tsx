@@ -15,6 +15,7 @@ import { IconDelete } from "@/components/icons/IconDelete";
 import { IconPlus } from "@/components/icons/IconPlus";
 import { AVATAR_COLORS, roles } from "@/constant";
 import { FiEye, FiEyeOff } from "react-icons/fi";
+import { PasswordField } from "@/components/PasswordField";
 
 const getInitials   = (n: string) => n.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 const getColor      = (n: string) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length];
@@ -268,18 +269,11 @@ export default function UsersPage() {
         </div>
         {!editingUser && (
           <div className="relative">
-            <label className="text-xs font-medium text-neutral-600">Password</label>
-            <input
+            <PasswordField
               name="password"
-              type={showPassword ? "text" : "password"}
-              autoComplete="current-password"
-              required
-              // value={password}
-              // onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full px-3 py-2 text-sm rounded-lg border bg-neutral-50 text-neutral-900
-                        placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30
-                        focus:border-[#c5262e] transition border-neutral-200" 
+              label="Password"
+              show={showPassword}
+              onToggle={() => setShowPassword((v) => !v)}
             />
             <button
               type="button"
