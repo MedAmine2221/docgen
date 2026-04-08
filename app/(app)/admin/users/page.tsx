@@ -13,8 +13,8 @@ import { Slideover } from "@/components/SlideOver";
 import { IconEdit } from "@/components/IconEdit";
 import { IconDelete } from "@/components/IconDelete";
 import { IconPlus } from "@/components/IconPlus";
-import { AVATAR_COLORS } from "@/constant";
-
+import { AVATAR_COLORS, roles } from "@/constant";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 const getInitials   = (n: string) => n.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 const getColor      = (n: string) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length];
@@ -26,6 +26,8 @@ export default function UsersPage() {
   const [saving, setSaving] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const [deletingUser, setDeletingUser] = useState<UserType | null>(null);
+    const [showPassword, setShowPassword] = useState(false);
+
   const [showSlide, setShowSlide] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   // Fetch users on mount
@@ -33,12 +35,6 @@ export default function UsersPage() {
     dispatch(fetchUsers());
   }, [dispatch]);
 
-  // Get unique roles
-  const roles = Array.from(new Map(
-    userList?.map((u: any) => [u?.role?.id, u?.role])
-  ).values());
-
-  // Handle Add/Edit submission
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
@@ -271,16 +267,32 @@ export default function UsersPage() {
           />
         </div>
         {!editingUser && (
-          <div className="space-y-1">
-            <label className="block text-xs font-medium text-neutral-600">Password</label>
-            <input 
-              name="password" 
-              type="password"
-              placeholder="••••••••" 
+          <div className="relative">
+            <label className="text-xs font-medium text-neutral-600">Password</label>
+            <input
+              name="password"
+              type={showPassword ? "text" : "password"}
+              autoComplete="current-password"
+              required
+              // value={password}
+              // onChange={(e) => setPassword(e.target.value)}
+              placeholder="••••••••"
               className="w-full px-3 py-2 text-sm rounded-lg border bg-neutral-50 text-neutral-900
-                placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30
-                focus:border-[#c5262e] transition border-neutral-200" 
+                        placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30
+                        focus:border-[#c5262e] transition border-neutral-200" 
             />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 bottom-0.5 -translate-y-1/2 text-neutral-400 hover:text-neutral-600 transition"
+              aria-label={showPassword ? "Masquer" : "Afficher"}
+            >
+              {showPassword ? (
+                <FiEye className="cursor-pointer text-default-100" />
+              ) : (
+                <FiEyeOff className="cursor-pointer text-default-100" />
+              )}
+            </button>
           </div>
         )}
         <div className="space-y-1">
@@ -293,7 +305,7 @@ export default function UsersPage() {
                        text-neutral-900 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30
                        focus:border-[#c5262e] transition"
           >
-            {roles.map((r: any) => (
+            {roles?.map((r: any) => (
               <option key={r.id} value={String(r.id)}>{r.name_eng}</option>
             ))}
           </select>

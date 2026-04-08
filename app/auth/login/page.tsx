@@ -8,6 +8,8 @@ import { useDispatch } from "react-redux";
 import { setProfilCredentials } from "@/redux/slice/profilReducer";
 import { setUserCredentials } from "@/redux/slice/userReducer";
 import { fetchUsers } from "@/redux/actions/users/getUsers";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { jwtDecode } from "jwt-decode";
 
 export default function Login() {
   const router = useRouter();
@@ -24,8 +26,9 @@ export default function Login() {
     setError(null);
     try {
       const data = await login({ email, password });
+      const tokenDecoded = jwtDecode(data)
+      console.log("tokenDecoded ",tokenDecoded?.role?.id);
       
-      // ✅ Vérifier si le serveur retourne une erreur dans data
       if (
         data === "password or email incorrect"
       ) {
@@ -34,9 +37,14 @@ export default function Login() {
       }
 
       dispatch(setProfilCredentials({ profil: data }));
-      const userData = await fetchUsers();      
+      const userData = await dispatch(fetchUsers());
+      
       dispatch(setUserCredentials({ users: userData }));
-      router.replace("/admin");
+      if(tokenDecoded?.role?.id == 1) {
+        router.replace("/admin");
+      }else if(tokenDecoded?.role?.id == 2){
+        router.replace("/developer");
+      }
     } catch (err) {
       setError("Une erreur est survenue. Veuillez réessayer.");
     } finally {
@@ -91,7 +99,7 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="john_doe"
+                  placeholder="john_doe@gmail.com"
                   className="w-full px-4 py-2.5 rounded-lg border border-neutral-300 bg-neutral-50
                              text-neutral-900 text-sm placeholder:text-neutral-400
                              focus:outline-none focus:ring-2 focus:ring-[#c5262e]/40 focus:border-[#c5262e]
@@ -134,14 +142,9 @@ export default function Login() {
                     aria-label={showPassword ? "Masquer" : "Afficher"}
                   >
                     {showPassword ? (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M3 3l18 18M10.477 10.485A3 3 0 0013.5 13.5m-4.95-4.95A7.003 7.003 0 005.1 12c1.036 2.506 3.453 4.5 6.9 4.5a7.02 7.02 0 003.417-.894M6.343 6.343A9.965 9.965 0 002 12c1.274 3.078 4.208 6 10 6a9.979 9.979 0 005.657-1.757M15 12a3 3 0 01-3 3" />
-                      </svg>
+                      <FiEye className="cursor-pointer text-default-100" />
                     ) : (
-                      <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                      </svg>
+                      <FiEyeOff className="cursor-pointer text-default-100" />
                     )}
                   </button>
                 </div>
