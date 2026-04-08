@@ -121,19 +121,6 @@ export default function Login() {
                   </button>
                 </div>
                 <div className="relative">
-                  {/* <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    autoComplete="current-password"
-                    required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full px-4 py-2.5 pr-11 rounded-lg border border-neutral-300 bg-neutral-50
-                               text-neutral-900 text-sm placeholder:text-neutral-400
-                               focus:outline-none focus:ring-2 focus:ring-[#c5262e]/40 focus:border-[#c5262e]
-                               transition"
-                  /> */}
                   <PasswordField
                     value={password}
                     onchange={(e) => setPassword(e.target.value)}
