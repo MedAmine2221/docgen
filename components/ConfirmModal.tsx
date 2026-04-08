@@ -1,4 +1,4 @@
-import { IconX } from "./IconX";
+import { IconX } from "./icons/IconX";
 
 export function Modal({
   open, onClose, title, children, footer,

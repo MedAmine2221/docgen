@@ -10,9 +10,9 @@ import { UserType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
 import { Slideover } from "@/components/SlideOver";
-import { IconEdit } from "@/components/IconEdit";
-import { IconDelete } from "@/components/IconDelete";
-import { IconPlus } from "@/components/IconPlus";
+import { IconEdit } from "@/components/icons/IconEdit";
+import { IconDelete } from "@/components/icons/IconDelete";
+import { IconPlus } from "@/components/icons/IconPlus";
 import { AVATAR_COLORS, roles } from "@/constant";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 
@@ -167,7 +167,7 @@ export default function UsersPage() {
                     <td className="px-5 py-3">
                       <div className="flex items-center gap-3">
                         <div
-                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold flex-shrink-0"
+                          className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
                           style={{ background: getColor(u.name) + "22", color: getColor(u.name) }}
                         >
                           {getInitials(u.name)}
