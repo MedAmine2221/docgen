@@ -1,5 +1,4 @@
 "use client";
-import { getUsers } from "@/redux/actions/users/getUsers";
 import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -26,7 +25,7 @@ export default function AuthGuard({ children }: { children: React.ReactNode }) {
       const token = localStorage.getItem("token");
       const isPublic = PUBLIC_ROUTES.some(r => pathname.startsWith(r));
 
-      if (!token && !isPublic) {
+      if (!token && !isPublic && !["/contact-admin", "/auth/forget-pass"].some(route => pathname.startsWith(route))) {
         router.replace("/auth/login");
         return;
       }

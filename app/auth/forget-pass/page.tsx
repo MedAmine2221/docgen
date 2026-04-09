@@ -1,16 +1,27 @@
 "use client";;
+import { ForgetPwd } from "@/redux/actions/users/forgetPassword";
 import Image from "next/image";
 import { useState } from "react";
+import { useDispatch } from "react-redux";
 
 export default function ForgetPass() {
   // const router = useRouter();
-  // const dispatch = useDispatch();
+  const dispatch = useDispatch();
   const [email, setEmail] = useState("");
   const [loading , setLoading] = useState(false);
-
+  const [msg, setMsg] = useState("")
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault();    
     setLoading(true);
+    const response = await dispatch(ForgetPwd({
+      email: e.target.email.value
+    })).unwrap();
+    console.log("response", response);
+    if(response.status == 401){
+      setMsg("Aucun compte associé à cet email")
+    }else if(response.status == 201) {
+      setMsg("Un nouveau mot de passe a été envoyé à votre adresse email")
+    }
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
   };
@@ -56,6 +67,7 @@ export default function ForgetPass() {
                 <input
                   id="email"
                   type="email"
+                  name="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -84,6 +96,29 @@ export default function ForgetPass() {
                 )}
                 {loading ? "Sending…" : "Send Email"}
               </button>
+              {msg == "Aucun compte associé à cet email" ? (
+                <div className="flex items-center gap-2 rounded-lg border border-red-200
+                                bg-red-50 px-4 py-2.5 text-sm text-red-700 mt-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64
+                            a1 1 0 00.86-1.5L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  {msg}
+                </div>
+              ):msg == "Un nouveau mot de passe a été envoyé à votre adresse email" ?(
+                <div className="flex items-center gap-2 rounded-lg border border-green-200
+                                bg-green-50 px-4 py-2.5 text-sm text-green-700 mt-5">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0"
+                      fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64
+                            a1 1 0 00.86-1.5L13.71 3.86a2 2 0 00-3.42 0z" />
+                  </svg>
+                  {msg}
+                </div>
+              ): undefined}
             </form>
           </div>
         </div>
