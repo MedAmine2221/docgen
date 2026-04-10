@@ -23,5 +23,13 @@ interface UsersState {
   error: string | null;
 }
 
+interface DecodedToken {
+  role?: {
+    id: number;
+    name?: string;
+  };
+  exp?: number;
+  iat?: number;
+}
 
-export type {AuthParams, UserType, Role, UsersState}
+export type {AuthParams, UserType, Role, UsersState, DecodedToken}

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useRouter } from "next/navigation";
 import { Spinner } from "@/components/AppSpinner";
 import { FiUser, FiMail, FiShield, FiLogOut, FiLock, FiCheck } from "react-icons/fi";
@@ -9,9 +9,10 @@ import { getColor, getInitials, handleLogout } from "@/utils/functions";
 import { PasswordField } from "@/components/PasswordField";
 import { changeUserPassword } from "@/redux/actions/users/changeUserPassword";
 import { Modal } from "@/components/ConfirmModal";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 
 export default function Profil() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const router = useRouter();
   const profil = useSelector((state: any) => state.profil?.profil)?.userInfo;
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);

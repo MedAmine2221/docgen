@@ -1,12 +1,12 @@
 "use client";;
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { ForgetPwd } from "@/redux/actions/users/forgetPassword";
 import Image from "next/image";
 import { useState } from "react";
-import { useDispatch } from "react-redux";
 
 export default function ForgetPass() {
   // const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [loading , setLoading] = useState(false);
   const [msg, setMsg] = useState("")
@@ -14,7 +14,7 @@ export default function ForgetPass() {
     e.preventDefault();    
     setLoading(true);
     const response = await dispatch(ForgetPwd({
-      email: e.target.email.value
+      email: e.target?.email.value
     })).unwrap();
     console.log("response", response);
     if(response.status == 401){

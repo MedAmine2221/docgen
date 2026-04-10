@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 import { useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { addUser } from "@/redux/actions/users/addUser";
 import { fetchUsers } from "@/redux/actions/users/getUsers";
 import { updateUser } from "@/redux/actions/users/updateUser";
@@ -16,12 +16,13 @@ import { IconPlus } from "@/components/icons/IconPlus";
 import { AVATAR_COLORS, roles } from "@/constant";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { PasswordField } from "@/components/PasswordField";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
 
 const getInitials   = (n: string) => n.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
 const getColor      = (n: string) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length];
 
 export default function UsersPage() {
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const { users: userList, loading } = useSelector((state: any) => state.users);
   
   const [saving, setSaving] = useState(false);
@@ -33,8 +34,10 @@ export default function UsersPage() {
   const [showDelete, setShowDelete] = useState(false);
   // Fetch users on mount
   useEffect(() => {
-    dispatch(fetchUsers());
-  }, [dispatch]);
+    if (!userList || userList.length === 0) {
+      dispatch(fetchUsers());
+    }
+  }, [dispatch, userList]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

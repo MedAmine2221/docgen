@@ -4,17 +4,18 @@ import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { login } from "@/redux/actions/auth/login";
-import { useDispatch } from "react-redux";
 import { setProfilCredentials } from "@/redux/slice/profilReducer";
 import { setUserCredentials } from "@/redux/slice/userReducer";
 import { fetchUsers } from "@/redux/actions/users/getUsers";
 import { FiEye, FiEyeOff } from "react-icons/fi";
 import { jwtDecode } from "jwt-decode";
 import { PasswordField } from "@/components/PasswordField";
+import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { DecodedToken } from "@/constant/interfaces";
 
 export default function Login() {
   const router = useRouter();
-  const dispatch = useDispatch();
+  const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -27,7 +28,7 @@ export default function Login() {
     setError(null);
     try {
       const data = await login({ email, password });
-      const tokenDecoded = jwtDecode(data.access_token)      
+      const tokenDecoded = jwtDecode<DecodedToken>(data.access_token);
       if (
         data === "password or email incorrect"
       ) {
@@ -36,7 +37,7 @@ export default function Login() {
       }
 
       dispatch(setProfilCredentials({ profil: data }));
-      const userData = await dispatch(fetchUsers());
+      const userData = await dispatch(fetchUsers()).unwrap();
       
       dispatch(setUserCredentials({ users: userData }));
       if(tokenDecoded?.role?.id == 1) {
