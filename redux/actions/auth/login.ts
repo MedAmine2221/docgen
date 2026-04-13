@@ -23,11 +23,12 @@ export async function login({ email, password }: AuthParams) {
             throw new Error("No token received from server");
         }
 
-        localStorage.setItem("token", data.access_token);
+        localStorage.setItem("token", data.access_token);        
         return data;
 
     } catch (error) {
         console.error("Error:", error);
+
         throw error;
     }
 }

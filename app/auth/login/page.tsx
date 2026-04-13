@@ -28,14 +28,13 @@ export default function Login() {
     setError(null);
     try {
       const data = await login({ email, password });
-      const tokenDecoded = jwtDecode<DecodedToken>(data.access_token);
       if (
         data === "password or email incorrect"
       ) {
         setError("Identifiants incorrects. Veuillez réessayer.");
         return;
       }
-
+      const tokenDecoded = jwtDecode<DecodedToken>(data.access_token);
       dispatch(setProfilCredentials({ profil: data }));
       const userData = await dispatch(fetchUsers()).unwrap();
       
@@ -46,6 +45,8 @@ export default function Login() {
         router.replace("/developer");
       }
     } catch (err) {
+      console.log(err);
+      
       setError("Une erreur est survenue. Veuillez réessayer.");
     } finally {
       setLoading(false);

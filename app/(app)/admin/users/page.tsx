@@ -65,7 +65,6 @@ export default function UsersPage() {
         // Add new user
         const password = formData.get("password") as string;
         if (!password) {
-          console.log("Password required for new user");
           setSaving(false);
           return;
         }
