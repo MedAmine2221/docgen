@@ -113,7 +113,7 @@ export default function UsersPage() {
   const getAdminCount = () => userList?.filter((u: any) => u.role?.name_eng === "ADMIN").length || 0;
   const getDeveloperCount = () => userList?.filter((u: any) => u.role?.name_eng === "DEVELOPER").length || 0;
 
-  if (loading && userList?.length === 0) {
+  if (loading) {
     return (
       <div className="flex items-center justify-center h-96">
         <Spinner />

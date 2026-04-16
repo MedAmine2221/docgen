@@ -113,16 +113,6 @@ export default function Docs() {
     }
   };
 
-  // Stats
-
-  if (docsList?.length === 0) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <Spinner />
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
       {/* Stats */}

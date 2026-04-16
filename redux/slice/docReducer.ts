@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { DocsState } from '@/constant/interfaces';
 import { createSlice } from '@reduxjs/toolkit';
-import { deleteUser } from '../actions/users/deleteUser';
 import { updateDoc } from '../actions/docs/updateDoc';
 import { addDoc } from '../actions/docs/addDocs';
 import { fetchDocs } from '../actions/docs/getDocs';
