@@ -17,6 +17,44 @@ const roles = [
   }
 ] 
 
+const doc_status = [
+  {
+    id : 1,
+    name : "pending",
+  },
+  {
+    id : 2,
+    name : "approve",
+  },
+  {
+    id : 3,
+    name : "rejected",
+  }
+] 
+
+const API_METHOD = [
+  {
+    id : 1,
+    name : "POST",
+  },
+  {
+    id : 2,
+    name : "GET",
+  },
+  {
+    id : 3,
+    name : "PUT",
+  },
+  {
+    id : 4,
+    name : "DELETE",
+  },
+  {
+    id : 5,
+    name : "PATCH",
+  }
+] 
+
 const NAV_ITEMS = [
   { label: "Gérer les users", path: "/admin/users",    icon: <IconUsers />, disabled: true },
   { label: "Gérer les docs",  path: "/admin/docs",     icon: <IconDocs />, disabled: true  },
@@ -28,4 +66,4 @@ const NAV_ITEMS = [
 const NAV_BOTTOM = [
   { label: "Paramètres", path: "/admin/settings", icon: <IconSettings /> },
 ];
-export { AVATAR_COLORS, roles, NAV_ITEMS, NAV_BOTTOM}
+export { API_METHOD, doc_status, AVATAR_COLORS, roles, NAV_ITEMS, NAV_BOTTOM}

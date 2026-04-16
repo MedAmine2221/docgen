@@ -12,6 +12,8 @@ import { jwtDecode } from "jwt-decode";
 import { PasswordField } from "@/components/PasswordField";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { DecodedToken } from "@/constant/interfaces";
+import { fetchDocs } from "@/redux/actions/docs/getDocs";
+import { setDoc } from "@/redux/slice/docReducer";
 
 export default function Login() {
   const router = useRouter();
@@ -39,6 +41,10 @@ export default function Login() {
       const userData = await dispatch(fetchUsers()).unwrap();
       
       dispatch(setUserCredentials({ users: userData }));
+
+      const docData = await dispatch(fetchDocs()).unwrap();
+      
+      dispatch(setDoc({ docs: docData }));
       if(tokenDecoded?.role?.id == 1) {
         router.replace("/admin");
       }else if(tokenDecoded?.role?.id == 2){

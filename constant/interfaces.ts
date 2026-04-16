@@ -17,10 +17,31 @@ interface UserType {
   role: Role;
 }
 
+// interface CommonHeaderType {
+//   "Content-Type" : string
+// }
+
+interface DocType {
+  id?: number;
+  name: string,
+  description: string,
+  submissionDate: string,
+  status: string,
+  baseUrl: string,
+  apiMethod: string,
+  commonHeader: string,
+  bearerToken: string ,
+  created_by: UserType
+}
+
 interface UsersState {
   users: UserType[];
   loading: boolean;
   error: string | null;
+}
+
+interface DocsState {
+  docs: DocType[];
 }
 
 interface DecodedToken {
@@ -32,4 +53,4 @@ interface DecodedToken {
   iat?: number;
 }
 
-export type {AuthParams, UserType, Role, UsersState, DecodedToken}
+export type {DocType,DocsState, AuthParams, UserType, Role, UsersState, DecodedToken}
