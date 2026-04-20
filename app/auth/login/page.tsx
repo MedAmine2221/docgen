@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { login } from "@/redux/actions/auth/login";
+import { getMe, login } from "@/redux/actions/auth/login";
 import { setProfilCredentials } from "@/redux/slice/profilReducer";
 import { setUserCredentials } from "@/redux/slice/userReducer";
 import { fetchUsers } from "@/redux/actions/users/getUsers";
@@ -37,7 +37,9 @@ export default function Login() {
         return;
       }
       const tokenDecoded = jwtDecode<DecodedToken>(data.access_token);
-      dispatch(setProfilCredentials({ profil: data }));
+      const me = dispatch(getMe());      
+      dispatch(setProfilCredentials({ profil: me }));
+
       const userData = await dispatch(fetchUsers()).unwrap();
       
       dispatch(setUserCredentials({ users: userData }));

@@ -16,6 +16,7 @@ import { fetchDocs } from "@/redux/actions/docs/getDocs";
 import { addDoc } from "@/redux/actions/docs/addDocs";
 import { updateDoc } from "@/redux/actions/docs/updateDoc";
 import { deleteDoc } from "@/redux/actions/docs/deleteDocs";
+import { fetchUsers } from "@/redux/actions/users/getUsers";
 
 export default function Docs() {
   const dispatch = useAppDispatch();
@@ -28,12 +29,7 @@ export default function Docs() {
 
   const [showSlide, setShowSlide] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
-  // Fetch Docs on mount
-  useEffect(() => {
-    if (!docsList || docsList.length === 0) {
-      dispatch(fetchDocs());
-    }
-  }, [dispatch, docsList]);
+
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

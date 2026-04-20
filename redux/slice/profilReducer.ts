@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // redux/features/authSlice.ts
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { getMe } from '../actions/auth/login';
 
 interface AuthState {
   profil: any | null;
@@ -22,6 +23,13 @@ export const profilSlice = createSlice({
     logout: (state) => {
       state.profil = null;
     },
+  },
+  extraReducers: (builder) => {
+    builder
+      // Fetch Docs
+      .addCase(getMe.fulfilled, (state, action) => {
+        state.profil = action.payload; // payload = tableau d’utilisateurs
+      });
   },
 });
 

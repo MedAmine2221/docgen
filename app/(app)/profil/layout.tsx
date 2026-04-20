@@ -20,7 +20,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
 
   const isActive = (path: string) => pathname.startsWith(path);
-  const profil = useSelector((state: any)=> state.profil?.profil)?.userInfo;  
+  const profil = useSelector((state: any)=> state.profil?.profil);  
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
 

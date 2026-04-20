@@ -14,7 +14,7 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 export default function Profil() {
   const dispatch = useAppDispatch();
   const router = useRouter();
-  const profil = useSelector((state: any) => state.profil?.profil)?.userInfo;
+  const profil = useSelector((state: any) => state.profil?.profil);
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [saving, setSaving] = useState(false);
 

@@ -21,9 +21,13 @@ const usersSlice = createSlice({
     clearError: (state) => {
       state.error = null;
     },
-    setUserCredentials: (state, action: PayloadAction<{ users: any }>) => {      
-      state.users = action.payload.users.users;
-    },
+    setUserCredentials: (state, action) => {
+      if (action.payload && action.payload.users) {
+        state.users = action.payload.users;
+      } else {
+        state.users = []; // or keep previous state
+      }
+    }
   },
   extraReducers: (builder) => {
     builder

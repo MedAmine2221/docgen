@@ -2,6 +2,7 @@ import AuthGuard from "@/providers/authGuard";
 import "./globals.css";
 import StoreProviders from "@/providers/storeProvider";
 import { Metadata } from "next";
+import RefetchDataProviders from "@/providers/refetchData";
 
 export const metadata: Metadata = {
   title: "DocGen",
@@ -24,7 +25,9 @@ export default function RootLayout({
       >
         <StoreProviders>
           <AuthGuard>
-            {children}
+            <RefetchDataProviders>
+              {children}
+            </RefetchDataProviders>
           </AuthGuard>
         </StoreProviders>
       </body>
