@@ -1,5 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { UsersState } from '@/constant/interfaces';
+ import { UsersState } from '@/constant/interfaces';
 import { createSlice } from '@reduxjs/toolkit';
 import { fetchUsers } from '../actions/users/getUsers';
 import { addUser } from '../actions/users/addUser';
@@ -52,7 +51,6 @@ const usersSlice = createSlice({
       })
       .addCase(addUser.fulfilled, (state, action) => {
         state.loading = false;
-        console.log("action.payload ",action.payload);
         if(action.payload.role.id === "1"){
           state.users.push({...action.payload, role: {id: "1", name_fr: "ADMIN", name_eng: "ADMIN"}});
         }

@@ -6,7 +6,6 @@ export const updateDoc = createAsyncThunk(
   'docs/updateDoc',
   async ({ id, docData }: { id: number; docData: DocType }, { rejectWithValue }) => {
     try {
-      console.log("docData ",docData);
       
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token found");

@@ -16,7 +16,6 @@ export default function ForgetPass() {
     const response = await dispatch(ForgetPwd({
       email: e.target?.email.value
     })).unwrap();
-    console.log("response", response);
     if(response.status == 401){
       setMsg("Aucun compte associé à cet email")
     }else if(response.status == 201) {

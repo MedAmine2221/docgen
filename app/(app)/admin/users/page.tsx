@@ -42,19 +42,17 @@ export default function UsersPage() {
     u.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
-console.log(filteredUsers);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
 
     const formData = new FormData(e.currentTarget);
-    const lastName = formData.get("lastName") as string;
-    const firstName = formData.get("firstName") as string;
+    const name = formData.get("name") as string;
     const email = formData.get("email") as string;
     const roleId = formData.get("roleId") as string;
 
-    if (!lastName || !firstName || !email) {
+    if (!name|| !email) {
       setSaving(false);
       return;
     }
@@ -63,7 +61,7 @@ console.log(filteredUsers);
       if (editingUser) {
         await dispatch(updateUser({
           id: editingUser.id,
-          userData: { name: lastName + " " + firstName, email, role_id: roleId }
+          userData: { name, email, role_id: roleId }
         })).unwrap();
       } else {
         const password = formData.get("password") as string;
@@ -71,7 +69,7 @@ console.log(filteredUsers);
           setSaving(false);
           return;
         }
-        await dispatch(addUser({ name: lastName + " " + firstName, email, password, role_id: roleId })).unwrap();
+        await dispatch(addUser({ name, email, password, role_id: roleId })).unwrap();
       }
       
       setShowSlide(false);
@@ -304,25 +302,14 @@ console.log(filteredUsers);
           )}
 
           {/* First Name & Last Name in two columns */}
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">First Name</label>
-              <input
-                name="firstName"
-                defaultValue={editingUser?.name?.split(" ")[0] || ""}
-                placeholder="John"
-                className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
-              />
-            </div>
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Last Name</label>
-              <input
-                name="lastName"
-                defaultValue={editingUser?.name?.split(" ").slice(1).join(" ") || ""}
-                placeholder="Doe"
-                className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
-              />
-            </div>
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">FullName</label>
+            <input
+              name="name"
+              defaultValue={editingUser?.name|| ""}
+              placeholder="John Doe"
+              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
+            />
           </div>
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</label>
