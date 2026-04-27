@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { UsersState } from '@/constant/interfaces';
-import { createSlice, PayloadAction } from '@reduxjs/toolkit';
+import { createSlice } from '@reduxjs/toolkit';
 import { fetchUsers } from '../actions/users/getUsers';
 import { addUser } from '../actions/users/addUser';
 import { updateUser } from '../actions/users/updateUser';
@@ -52,7 +52,13 @@ const usersSlice = createSlice({
       })
       .addCase(addUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.users.push(action.payload); // Ajout direct dans la liste
+        console.log("action.payload ",action.payload);
+        if(action.payload.role.id === "1"){
+          state.users.push({...action.payload, role: {id: "1", name_fr: "ADMIN", name_eng: "ADMIN"}});
+        }
+        else if(action.payload.role.id === "2"){
+          state.users.push({...action.payload, role: {id: "1", name_fr: "DÉVELOPPEUR", name_eng: "DEVELOPER"}});
+        }
       })
       .addCase(addUser.rejected, (state, action) => {
         state.loading = false;

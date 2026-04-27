@@ -19,7 +19,7 @@ export function Slideover({
           flex flex-col transition-transform duration-300 ease-in-out
           ${open ? "translate-x-0" : "translate-x-full"}`}
       >
-        <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100 flex-shrink-0">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100 shrink-0">
           <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
           <button
             type="button"
@@ -32,7 +32,7 @@ export function Slideover({
         <div className="flex-1 overflow-y-auto px-6 py-6 space-y-5">
           {children}
         </div>
-        <div className="flex justify-end gap-2 px-6 py-4 border-t border-neutral-100 flex-shrink-0 bg-white">
+        <div className="flex justify-end gap-2 px-6 py-4 border-t border-neutral-100 shrink-0 bg-white">
           {footer}
         </div>
       </div>

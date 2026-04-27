@@ -49,11 +49,12 @@ console.log(filteredUsers);
     setSaving(true);
 
     const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
+    const lastName = formData.get("lastName") as string;
+    const firstName = formData.get("firstName") as string;
     const email = formData.get("email") as string;
     const roleId = formData.get("roleId") as string;
 
-    if (!name || !email) {
+    if (!lastName || !firstName || !email) {
       setSaving(false);
       return;
     }
@@ -62,7 +63,7 @@ console.log(filteredUsers);
       if (editingUser) {
         await dispatch(updateUser({
           id: editingUser.id,
-          userData: { name, email, role_id: roleId }
+          userData: { name: lastName + " " + firstName, email, role_id: roleId }
         })).unwrap();
       } else {
         const password = formData.get("password") as string;
@@ -70,7 +71,7 @@ console.log(filteredUsers);
           setSaving(false);
           return;
         }
-        await dispatch(addUser({ name, email, password, role_id: roleId })).unwrap();
+        await dispatch(addUser({ name: lastName + " " + firstName, email, password, role_id: roleId })).unwrap();
       }
       
       setShowSlide(false);
@@ -123,7 +124,7 @@ console.log(filteredUsers);
   }
 
   return (
-    <div className="space-y-6 p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+    <div className="space-y-6 p-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
@@ -132,7 +133,7 @@ console.log(filteredUsers);
         </div>
         <button
           onClick={openAdd}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#c5262e] to-[#a81e25] text-white text-sm font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
+          className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-linear-to-r from-[#c5262e] to-[#a81e25] text-white text-sm font-semibold hover:shadow-lg transition-all duration-300 transform hover:scale-105"
         >
           <IconPlus />
           Add Team Member
@@ -153,7 +154,7 @@ console.log(filteredUsers);
                   <p className="text-xs font-medium text-gray-400 uppercase tracking-wider">{s.label}</p>
                   <p className="text-3xl font-bold text-gray-900 mt-2">{s.value}</p>
                 </div>
-                <div className={`w-12 h-12 bg-gradient-to-r ${s.color} rounded-xl flex items-center justify-center shadow-lg`}>
+                <div className={`w-12 h-12 bg-linear-to-r ${s.color} rounded-xl flex items-center justify-center shadow-lg`}>
                   <s.icon className="w-5 h-5 text-white" />
                 </div>
               </div>
@@ -223,14 +224,14 @@ console.log(filteredUsers);
                     </td>
                     <td className="px-6 py-4 text-gray-500">{u.email}</td>
                     <td className="px-6 py-4">
-                      {u.role.name_fr === "ADMIN" ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
+                      {u.role?.name_fr === "ADMIN" ? <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-green-50 text-green-700">
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
-                        {u.role.name_fr}
+                        {u.role?.name_fr}
                       </span>
                       :
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
                         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
-                        {u.role.name_fr}
+                        {u.role?.name_fr}
                       </span>}
                     </td>
                     <td className="px-6 py-4">
@@ -271,7 +272,7 @@ console.log(filteredUsers);
           setEditingUser(null);
           setShowPassword(false);
         }}
-        title={editingUser ? "Edit Developer" : "Add New Developer"}
+        title={editingUser ? "Edit User" : "Add New User"}
         footer={
           <div className="flex gap-3">
             <button
@@ -284,10 +285,10 @@ console.log(filteredUsers);
             <button
               disabled={saving}
               type="submit"
-              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-gradient-to-r from-[#c5262e] to-[#a81e25] text-white hover:shadow-lg disabled:opacity-60 transition-all duration-200 flex items-center justify-center gap-2"
+              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-linear-to-r from-[#c5262e] to-[#a81e25] text-white hover:shadow-lg disabled:opacity-60 transition-all duration-200 flex items-center justify-center gap-2"
             >
               {saving && <Spinner white />}
-              {editingUser ? "Save Changes" : "Add Developer"}
+              {editingUser ? "Save Changes" : "Add User"}
             </button>
           </div>
         }
@@ -323,10 +324,6 @@ console.log(filteredUsers);
               />
             </div>
           </div>
-
-          {/* Hidden field for full name */}
-          <input type="hidden" name="name" id="fullName" />
-
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</label>
             <input
@@ -402,7 +399,7 @@ console.log(filteredUsers);
       >
         <div className="text-center">
           <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <IconDelete className="w-8 h-8 text-red-500" />
+            <IconDelete />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Deletion</h3>
           <p className="text-sm text-gray-500">
