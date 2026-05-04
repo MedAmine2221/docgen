@@ -4,7 +4,6 @@ import { useMemo, useRef } from "react";
 import { Chart, registerables } from "chart.js";
 import { useSelector } from "react-redux";
 import { RootState } from "@/redux/store";
-import { getInitials } from "@/utils/functions";
 import { MONTHS, TODAY } from "@/constant";
 import { useChart } from "@/hooks/useAppChart";
 import IconDoc from "@/components/icons/IconDoc";
@@ -18,17 +17,28 @@ Chart.register(...registerables);
 
 export default function DashboardPage() {
   const users = useSelector((state: RootState) => state.users.users);  
-  const docs = useSelector((state: RootState) => state.docs.docs).filter((item: any) => item.status.toLowerCase() !== "draft");
-  const MAX_DOCS = useMemo(()=>{
-    return Math.max(...users.map((d) => d.docs.length));
-  },[users])
-  const docsStats = useMemo(()=>{
-      const total = docs.length || 1;
-      const docsApproved = docs?.filter((item: any) => item.status === "approve");
-      const docsRejected = docs?.filter((item: any) => item.status === "rejected");
-      const docsPending = docs?.filter((item: any) => item.status === "pending");
-      return {total, docsApproved, docsRejected, docsPending}
-  },[docs])
+  const me = useSelector((state: RootState) => state.profil.profil)?.docs;
+
+  const docsStats = useMemo(() => {
+    // Vérification si me est undefined ou null
+    if (!me || !Array.isArray(me)) {
+      return {
+        total: 0,
+        docsApproved: [],
+        docsRejected: [],
+        docsPending: [],
+        docsDraft: []
+      };
+    }
+    
+    const total = me.length || 1;
+    const docsApproved = me?.filter((item: any) => item.status === "approve" || item.status === "approved") || [];
+    const docsDraft = me?.filter((item: any) => item.status === "draft") || [];
+    const docsRejected = me?.filter((item: any) => item.status === "rejected") || [];
+    const docsPending = me?.filter((item: any) => item.status === "pending") || [];
+    
+    return { total, docsApproved, docsRejected, docsPending, docsDraft };
+  }, [me]);
   
   const donutRef = useRef<HTMLCanvasElement>(null);
   const barRef   = useRef<HTMLCanvasElement>(null);
@@ -36,31 +46,47 @@ export default function DashboardPage() {
 
   const textColor = "rgba(115,115,115,0.9)";
   const gridColor = "rgba(0,0,0,0.06)";
+  
   function getMonthlyStats(docs: any[]) {
     const submissions = Array(12).fill(0);
     const approved = Array(12).fill(0);
 
+    // Vérification si docs est undefined ou null
+    if (!docs || !Array.isArray(docs)) {
+      return { submissions, approved };
+    }
+
     docs.forEach((doc) => {
+      if (doc && doc.submissionDate) {
         const date = new Date(doc.submissionDate);
         const month = date.getMonth();
 
         submissions[month]++;
 
-        if (doc.status === "approve") {
-        approved[month]++;
+        if (doc.status === "approve" || doc.status === "approved") {
+          approved[month]++;
         }
+      }
     });
 
     return { submissions, approved };
   }
-  const { submissions, approved } = getMonthlyStats(docs);
+  
+  const { submissions, approved } = getMonthlyStats(me);
+  
+  // Fixed: Include ALL 4 statuses in the donut chart
   useChart(donutRef, () => ({
     type: "doughnut",
     data: {
-      labels: ["Approuvés", "En attente", "Rejetés"],
+      labels: ["Approuvés", "En attente", "Brouillon", "Rejetés"],
       datasets: [{
-        data: [docsStats?.docsApproved.length, docsStats?.docsPending.length, docsStats?.docsRejected.length],
-        backgroundColor: ["#16a34a", "#d97706", "#dc2626"],
+        data: [
+          docsStats?.docsApproved.length, 
+          docsStats?.docsPending.length, 
+          docsStats?.docsDraft.length,
+          docsStats?.docsRejected.length
+        ],
+        backgroundColor: ["#16a34a", "#d97706", "#64748b", "#dc2626"],
         borderWidth: 0,
         hoverOffset: 6,
       }],
@@ -71,7 +97,11 @@ export default function DashboardPage() {
       cutout: "68%",
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw} docs` } },
+        tooltip: { 
+          callbacks: { 
+            label: (c) => ` ${c.label}: ${c.raw} docs (${docsStats?.total > 0 ? Math.round((c.raw as number / docsStats?.total) * 100) : 0}%)` 
+          } 
+        },
       },
     },
   }));
@@ -79,10 +109,10 @@ export default function DashboardPage() {
   useChart(barRef, () => ({
     type: "bar",
     data: {
-      labels: users.map((d) => d.name.split(" ")[0] + " " + d.name.split(" ")[1]?.[0] + "."),
+      labels: users && users.length > 0 ? users.map((d) => d.name.split(" ")[0] + " " + d.name.split(" ")[1]?.[0] + ".") : [],
       datasets: [{
         label: "Documents",
-        data: users.map((d) => d.docs?.length),
+        data: users && users.length > 0 ? users.map((d) => d.docs?.length || 0) : [],
         backgroundColor: ["#c5262e", "#e05a60", "#ea868a", "#f2b3b5"],
         borderRadius: 6,
         borderWidth: 0,
@@ -98,6 +128,7 @@ export default function DashboardPage() {
       },
     },
   }));
+  
   useChart(lineRef, () => ({
     type: "line",
     data: {
@@ -139,6 +170,23 @@ export default function DashboardPage() {
     },
   }));
 
+  // Helper function to safely calculate percentage
+  const getPercentage = (count: number) => {
+    if (!docsStats || docsStats?.total === 0) return 0;
+    return Math.round((count / docsStats?.total) * 100);
+  };
+
+  // Loading state
+  if (!me) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c5262e] mx-auto"></div>
+          <p className="mt-4 text-neutral-600">Chargement du tableau de bord...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-5">
@@ -157,10 +205,10 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
         <KpiCard
           label="Total documents"
-          value={docsStats?.total}
+          value={docsStats?.total || 0}
           sub="Tous statuts confondus"
           iconColor="text-[#c5262e]"
           iconBg="bg-[#c5262e]/10"
@@ -168,17 +216,30 @@ export default function DashboardPage() {
         />
         <KpiCard
           label="Approuvés"
-          value={docsStats?.docsApproved.length}
-          sub={`${Math.round((docsStats?.docsApproved.length / docsStats?.total) * 100)}% du total`}
+          value={docsStats?.docsApproved?.length || 0}
+          sub={`${getPercentage(docsStats?.docsApproved?.length || 0)}% du total`}
           valueColor="text-green-600"
           iconColor="text-green-600"
           iconBg="bg-green-50"
           icon={<IconCheck />}
         />
         <KpiCard
+          label="Brouillon"
+          value={docsStats?.docsDraft?.length || 0}
+          sub={`${getPercentage(docsStats?.docsDraft?.length || 0)}% du total`}
+          valueColor="text-slate-600"
+          iconColor="text-slate-600"
+          iconBg="bg-slate-50"
+          icon={
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+              <path d="M2 2h6M2 5h4M2 8h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            </svg>
+          }
+        />
+        <KpiCard
           label="En attente"
-          value={docsStats?.docsPending.length}
-          sub={`${Math.round((docsStats?.docsPending.length / docsStats?.total) * 100)}% du total`}
+          value={docsStats?.docsPending?.length || 0}
+          sub={`${getPercentage(docsStats?.docsPending?.length || 0)}% du total`}
           valueColor="text-amber-600"
           iconColor="text-amber-600"
           iconBg="bg-amber-50"
@@ -186,8 +247,8 @@ export default function DashboardPage() {
         />
         <KpiCard
           label="Rejetés"
-          value={docsStats?.docsRejected.length}
-          sub={`${Math.round((docsStats?.docsRejected.length / docsStats?.total) * 100)}% du total`}
+          value={docsStats?.docsRejected?.length || 0}
+          sub={`${getPercentage(docsStats?.docsRejected?.length || 0)}% du total`}
           valueColor="text-red-600"
           iconColor="text-red-600"
           iconBg="bg-red-50"
@@ -201,24 +262,22 @@ export default function DashboardPage() {
         {/* Donut */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
           <p className="text-sm font-medium text-neutral-800">Répartition des documents</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Par statut — {docsStats?.total} documents au total</p>
+          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Par statut — {docsStats?.total || 0} documents au total</p>
           <div className="flex gap-3 mb-3 flex-wrap">
-            <LegendDot color="#16a34a" label={`Approuvés ${Math.round((docsStats?.docsApproved.length / docsStats?.total) * 100)}%`} />
-            <LegendDot color="#d97706" label={`En attente ${Math.round((docsStats?.docsPending.length / docsStats?.total) * 100)}%`} />
-            <LegendDot color="#dc2626" label={`Rejetés ${Math.round((docsStats?.docsRejected.length / docsStats?.total) * 100)}%`} />
+            <LegendDot color="#16a34a" label={`Approuvés ${getPercentage(docsStats?.docsApproved?.length || 0)}%`} />
+            <LegendDot color="#d97706" label={`En attente ${getPercentage(docsStats?.docsPending?.length || 0)}%`} />
+            <LegendDot color="#64748b" label={`Brouillon ${getPercentage(docsStats?.docsDraft?.length || 0)}%`} />
+            <LegendDot color="#dc2626" label={`Rejetés ${getPercentage(docsStats?.docsRejected?.length || 0)}%`} />
           </div>
           <div className="relative h-52">
             <canvas ref={donutRef} />
           </div>
         </div>
-
-        {/* Bar */}
+        
+        {/* Bar Chart */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
-          <p className="text-sm font-medium text-neutral-800">Documents par développeur</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Contributions individuelles</p>
-          <div className="flex gap-3 mb-3">
-            <LegendDot color="#c5262e" label="Docs soumis" />
-          </div>
+          <p className="text-sm font-medium text-neutral-800">Documents par utilisateur</p>
+          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Distribution des documents</p>
           <div className="relative h-52">
             <canvas ref={barRef} />
           </div>
@@ -226,8 +285,7 @@ export default function DashboardPage() {
       </div>
 
       {/* Charts Row 2 */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-
+      <div className="grid grid-cols-1 gap-4">
         {/* Line */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
           <p className="text-sm font-medium text-neutral-800">Activité mensuelle</p>
@@ -238,37 +296,6 @@ export default function DashboardPage() {
           </div>
           <div className="relative h-48">
             <canvas ref={lineRef} />
-          </div>
-        </div>
-
-        {/* Dev ranking */}
-        <div className="bg-white rounded-xl border border-neutral-100 p-5">
-          <p className="text-sm font-medium text-neutral-800">Classement développeurs</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Nombre de documents soumis</p>
-          <div className="space-y-0 divide-y divide-neutral-100">
-            {users.map((dev) => (
-              <div key={dev.email} className="flex items-center gap-3 py-3">
-                <div
-                  className="w-8 h-8 rounded-full flex items-center justify-center text-xs font-semibold shrink-0"
-                  style={{ background: "#fef2f2", color: "#c5262e" }}
-                >
-                  {getInitials(dev.name ?? "")}
-                </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-neutral-900 truncate">{dev.name}</p>
-                  <div className="flex items-center gap-2 mt-1">
-                    <div className="flex-1 h-1.5 bg-neutral-100 rounded-full overflow-hidden">
-                      <div
-                        className="h-1.5 rounded-full transition-all"
-                        style={{ width: `${(dev.docs?.length / MAX_DOCS) * 100}%`, background: "#c5262e" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-                <span className="text-sm font-semibold text-neutral-800 shrink-0">{dev.docs.length}</span>
-              </div>
-            ))}
-           
           </div>
         </div>
       </div>

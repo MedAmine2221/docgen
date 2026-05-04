@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { FiBell, FiChevronRight, FiGlobe, FiMonitor, FiMoon, FiSun, FiUser } from "react-icons/fi";
 
 export default function SettingsPage() {
+  const router =  useRouter();
   const [langue, setLangue] = useState("francais");
   const [dateFormat, setDateFormat] = useState("JJ/MM/AAAA");
   const [timezone, setTimezone] = useState("UTC+1");
@@ -29,19 +31,7 @@ export default function SettingsPage() {
         </span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Sidebar de navigation (optionnelle, style clean) */}
-        <div className="bg-white rounded-xl border border-neutral-100 p-4 space-y-1">
-          <button className="w-full text-left px-3 py-2 rounded-lg text-sm font-medium text-[#c5262e] bg-[#fef2f2]">
-            Mon profil
-          </button>
-          <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-neutral-600 hover:bg-neutral-50">
-            Sécurité
-          </button>
-          <button className="w-full text-left px-3 py-2 rounded-lg text-sm text-neutral-600 hover:bg-neutral-50">
-            Préférences
-          </button>
-        </div>
+      <div>
 
         {/* Contenu principal */}
         <div className="lg:col-span-2 space-y-5">
@@ -57,7 +47,7 @@ export default function SettingsPage() {
                   <p className="text-sm font-medium text-neutral-900">Gérer mon profil</p>
                   <p className="text-xs text-neutral-400 mt-0.5">Photo, mot de passe et informations personnelles</p>
                 </div>
-                <button className="text-xs text-[#c5262e] flex items-center gap-1 font-medium">
+                <button onClick={()=> router.push("/profil")} className="text-xs text-[#c5262e] flex items-center gap-1 font-medium cursor-pointer">
                   Modifier <FiChevronRight className="w-3 h-3" />
                 </button>
               </div>
@@ -80,7 +70,6 @@ export default function SettingsPage() {
                 >
                   <option value="francais">Français</option>
                   <option value="english">English</option>
-                  <option value="arabe">العربية</option>
                 </select>
               </div>
               <div>
