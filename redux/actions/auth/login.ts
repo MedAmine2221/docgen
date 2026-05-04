@@ -9,14 +9,15 @@ export async function login({ email, password }: AuthParams) {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ email, password }),
         });
+        
         if(response.status == 401){
             return "password or email incorrect"
         }
+        
         let data = null;
-
-        const text = await response.text(); // read raw response first
-
+        const text = await response.text();
         data = text ? JSON.parse(text) : null;        
+        
         if (!response.ok) {
             throw new Error(data?.message || "Login failed");
         }
@@ -25,12 +26,12 @@ export async function login({ email, password }: AuthParams) {
             throw new Error("No token received from server");
         }
 
+        // Stocker le token IMMÉDIATEMENT
         localStorage.setItem("token", data.access_token);        
         return data;
 
     } catch (error) {
         console.error("Error:", error);
-
         throw error;
     }
 }
@@ -39,7 +40,7 @@ export const getMe = createAsyncThunk(
   'users/getMe',
   async (_, { rejectWithValue }) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem("token");      
       if (!token) throw new Error("No token found");
 
       const response = await fetch('http://localhost:3001/users/me', {
@@ -50,14 +51,17 @@ export const getMe = createAsyncThunk(
         },
       });
 
+
       if (!response.ok) {
         if (response.status === 401) throw new Error("Unauthorized");
-        throw new Error("Failed to fetch docs");
+        throw new Error("Failed to fetch user data");
       }
 
       const data = await response.json();
+      
       return data;
     } catch (error: any) {
+      console.error("GetMe error:", error);
       return rejectWithValue(error.message);
     }
   }

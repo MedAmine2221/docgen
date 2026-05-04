@@ -61,17 +61,23 @@ const API_METHOD = [
 ] 
 
 const NAV_ITEMS = [
-  { label: "Dashboard", path: "/admin/dashboard",    icon: <FiHome />, disabled: true },
+  { label: "Admin Dashboard", path: "/admin/dashboard",    icon: <FiHome />, disabled: true },
   { label: "Gérer les users", path: "/admin/users",    icon: <IconUsers />, disabled: true },
   { label: "Gérer les docs",  path: "/admin/docs",     icon: <IconDocs />, disabled: true  },
-  { label: "Gérer les APIs",  path: "/admin/apis",     icon: <IconApi />, disabled: true   },
+  { label: "Gérer Votre Profil",  path: "/profil",     icon: <IconApi />, disabled: false  },
+
+];
+
+const NAV_ITEMS_Dev = [
+  { label: "Developer Dashboard", path: "/developer/dashboard",    icon: <FiHome />, disabled: true },
+  { label: "Gérer les docs",  path: "/developer/docs",     icon: <IconDocs />, disabled: true  },
   { label: "Gérer Votre Profil",  path: "/profil",     icon: <IconApi />, disabled: false  },
 
 ];
 
 const NAV_BOTTOM = [
-  { label: "Paramètres", path: "/admin/settings", icon: <IconSettings /> },
+  { label: "Paramètres", path: "/settings", icon: <IconSettings /> },
 ];
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 
-export { TODAY, MONTHS, API_METHOD, doc_status, AVATAR_COLORS, roles, NAV_ITEMS, NAV_BOTTOM}
+export {NAV_ITEMS_Dev, TODAY, MONTHS, API_METHOD, doc_status, AVATAR_COLORS, roles, NAV_ITEMS, NAV_BOTTOM}

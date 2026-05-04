@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 interface AuthParams {
     email: string;
     password: string;
@@ -28,10 +29,11 @@ interface DocType {
   submissionDate: string,
   status: string,
   baseUrl: string,
-  apiMethod: string,
+  apiMethod?: string,
   commonHeader: string,
   bearerToken: string ,
-  created_by: UserType
+  user_creator: UserType,
+  apis: any
 }
 
 interface UsersState {

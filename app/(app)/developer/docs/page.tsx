@@ -1,16 +1,14 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useSelector } from "react-redux";
-import { DocType, UserType } from "@/constant/interfaces";
+import { DocType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
 import { Slideover } from "@/components/SlideOver";
 import { IconPlus } from "@/components/icons/IconPlus";
 import { IconEdit } from "@/components/icons/IconEdit";
 import { IconDelete } from "@/components/icons/IconDelete";
-import { doc_status } from "@/constant";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { RootState } from "@/redux/store";
 import { addDoc } from "@/redux/actions/docs/addDocs";
@@ -19,9 +17,8 @@ import { deleteDoc } from "@/redux/actions/docs/deleteDocs";
 import {
   FiSearch, FiEye, FiFileText, FiGlobe,
   FiChevronLeft, FiChevronRight, FiPlus, FiTrash2, FiCheck, FiX,
+  FiSend,
 } from "react-icons/fi";
-import { FcApproval } from "react-icons/fc";
-import { BsXOctagon } from "react-icons/bs";
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 const PALETTE = ["#c5262e","#2563eb","#16a34a","#d97706","#7c3aed","#0891b2","#db2777"];
@@ -38,22 +35,20 @@ export interface ApiEntry {
   endPoint: string;
   _markedForDelete?: boolean;
 }
-
-function StatusBadge({ status }: { status: string }) {
+function StatusBadge({ status }: any) {
   const s = status?.toLowerCase();
   const isApproved = s === "approve" || s === "approved";
   const isPending  = s === "pending";
-  if (isApproved)
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
+  const isDraft    = s === "draft" || s === "Draft" ;
+  if (isApproved) return (
+          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
           <path d="M8.5 2.5 4 7.5 1.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
         </svg>
         APPROVED
       </span>
-    );
-  if (isPending)
-    return (
+  );
+  if (isPending)  return (
       <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
         <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
           <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
@@ -61,17 +56,23 @@ function StatusBadge({ status }: { status: string }) {
         </svg>
         PENDING
       </span>
+  );
+  if (isDraft)
+    return (
+      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path d="M2 2h6M2 5h4M2 8h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        </svg>
+        DRAFT
+      </span>
     );
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600 border border-red-200">
+  return ( <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600 border border-red-200">
       <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
         <path d="M2.5 2.5 7.5 7.5M7.5 2.5 2.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
       </svg>
       REJECTED
-    </span>
-  );
+    </span> );
 }
-
 function MethodBadge({ method }: { method: string }) {
   const map: Record<string,string> = {
     GET:    "bg-blue-50 text-blue-700 border-blue-100",
@@ -96,14 +97,8 @@ const PAGE_SIZE = 8;
 /* ── component ────────────────────────────────────────────────────── */
 export default function Docs() {
   const dispatch  = useAppDispatch();
-  const docsList  = useSelector((state: RootState) => state.docs.docs) ?? [];
-  const profil = useSelector((item: RootState) => item.profil.profil);
-  console.log(profil?.id);
+  const me = useSelector((state: RootState)=> state.profil.profil);
   
-  const filtredDocList = useMemo(()=> {
-    return docsList.filter((item: any)=> item.status.toLowerCase() !== "draft")
-  },[docsList])
-  const usersList = useSelector((state: RootState) => state.users.users) ?? [];
 const [viewingDoc, setViewingDoc] = useState<DocType | null>(null);
 const [showViewModal, setShowViewModal] = useState(false);
 const openViewDetails = (doc: DocType) => {
@@ -171,7 +166,7 @@ const openViewDetails = (doc: DocType) => {
     setShowSlide(true);
   };
 
-  const filtered = filtredDocList.filter((d: DocType) => {
+  const filtered = me?.docs?.filter((d: DocType) => {
     const q = search.toLowerCase();
     const match =
       d.name?.toLowerCase().includes(q) ||
@@ -180,61 +175,69 @@ const openViewDetails = (doc: DocType) => {
     const s = d.status?.toLowerCase();
     const statusMatch =
       filterStatus === "all" ||
+      (filterStatus === "draft" && s === "draft") ||
       (filterStatus === "approved" && (s === "approve" || s === "approved")) ||
       (filterStatus === "pending"  && s === "pending") ||
       (filterStatus === "rejected" && s === "rejected");
     return match && statusMatch;
-  });
+  }) ?? [];
 
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paginated   = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const counts = {
-    approved: filtredDocList.filter((d: DocType) => ["approve","approved"].includes(d.status?.toLowerCase())).length,
-    pending:  filtredDocList.filter((d: DocType) => d.status?.toLowerCase() === "pending").length,
-    rejected: filtredDocList.filter((d: DocType) => d.status?.toLowerCase() === "rejected").length,
+    approved: me?.docs?.filter((d: DocType) => ["approve","approved"].includes(d.status?.toLowerCase())).length ?? 0,
+    pending:  me?.docs?.filter((d: DocType) => d.status?.toLowerCase() === "pending").length ?? 0,
+    rejected: me?.docs?.filter((d: DocType) => d.status?.toLowerCase() === "rejected").length ?? 0,
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    
     e.preventDefault();
     setSaving(true);
     const fd = new FormData(e.currentTarget);
     const g  = (k: string) => fd.get(k) as string;
-    const selectedUser = usersList.find((u: UserType) => u.id === Number(g("user_creator")));
-    if (!selectedUser) { setSaving(false); return; }
 
     try {
+      
       // Separate APIs by operation type
       const apisToDelete = apiEntries.filter(a => a._markedForDelete && a.id);
       const apisToKeep = apiEntries.filter(a => !a._markedForDelete);
       const apisToAdd = apisToKeep.filter(a => !a.id && a.endPoint.trim() !== "");
       const apisToUpdate = apisToKeep.filter(a => a.id && a.endPoint.trim() !== "");
-
       const docPayload = {
         name:           g("name"),
         description:    g("description"),
-        status:         g("status"),
+        status:         "draft",
         submissionDate: g("submissionDate"),
         baseUrl:        g("baseUrl"),
         commonHeader:   g("commonHeader"),
         bearerToken:    g("bearerToken"),
-        user_creator:   selectedUser,
+        user_creator:   me?.id,
         // Send separate arrays for CRUD operations
         apisToAdd,
         apisToUpdate,
         apisToDelete,
       };
+      
 
       if (editingDoc) {
         await dispatch(updateDoc({ id: String(editingDoc.id), docData: docPayload })).unwrap();
       } else {
+        
         // For new document, only send APIs to add
-        await dispatch(addDoc(
-        {
-          ...docPayload,
+        await dispatch(addDoc({
+          name: docPayload?.name,
+          description: docPayload.description,
+          submissionDate: docPayload.submissionDate,
+          status: docPayload?.status,
+          baseUrl: docPayload.baseUrl,
+          commonHeader: docPayload.commonHeader,
+          bearerToken: docPayload.bearerToken,
+          user_creator: docPayload.user_creator,
           apis: apisToAdd,
-        })).unwrap();
+      })).unwrap();
       }
       setShowSlide(false);
       setEditingDoc(null);
@@ -258,18 +261,18 @@ const openViewDetails = (doc: DocType) => {
       setSaving(false);
     }
   };
-
-  const visibleEntries = apiEntries.map((e, i) => ({ ...e, _idx: i })).filter(e => !e._markedForDelete);
-  const handleUpdateDoc = async (doc: DocType, status: string) => {
+  const handleReview = async (doc: DocType) => {
     setSaving(true);
     try {
-      await dispatch(updateDoc({ id: String(doc.id), docData: { status } })).unwrap();
+      await dispatch(updateDoc({ id: String(doc.id), docData: { status: "pending" } })).unwrap();
     } catch (err) {
       console.error(err);
     } finally {
       setSaving(false);
     }
   };
+  const visibleEntries = apiEntries.map((e, i) => ({ ...e, _idx: i })).filter(e => !e._markedForDelete);
+
   return (
     <div className="space-y-4">
 
@@ -294,6 +297,7 @@ const openViewDetails = (doc: DocType) => {
                      focus:border-[#c5262e] transition min-w-40"
         >
           <option value="all">Tous les statuts</option>
+          <option value="draft">Brouillon ({counts.approved})</option>
           <option value="approved">Approuvés ({counts.approved})</option>
           <option value="pending">En attente ({counts.pending})</option>
           <option value="rejected">Rejetés ({counts.rejected})</option>
@@ -323,7 +327,6 @@ const openViewDetails = (doc: DocType) => {
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50/60">
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">Titre</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">Auteur</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">Statut</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider hidden lg:table-cell">APIs</th>
                   <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider hidden xl:table-cell">Mise à jour</th>
@@ -346,39 +349,10 @@ const openViewDetails = (doc: DocType) => {
                           </div>
                         </div>
                        </td>
-                      <td className="px-6 py-4">
-                        <div className="flex items-center gap-2.5">
-                          <div
-                            className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
-                            style={{ background: color + "22", color }}
-                          >
-                            {initials(doc.user_creator?.name)}
-                          </div>
-                          <span className="text-sm text-neutral-600 whitespace-nowrap">{doc.user_creator?.name}</span>
-                        </div>
-                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={doc.status} />
                        </td>
-                      {/* <td className="px-6 py-4 hidden lg:table-cell">
-                        <div className="flex flex-wrap gap-1">
-                          {(doc.apis ?? []).length > 0 ? (
-                            (doc.apis as any[]).slice(0, 3).map((api: any, i: number) => (
-                              <div key={i} className="flex items-center gap-1">
-                                <MethodBadge method={api.apiMethod} />
-                                <span className="text-[10px] text-neutral-400 font-mono truncate max-w-[80px]">
-                                  {api.endPoint}
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <span className="text-xs text-neutral-300 italic">—</span>
-                          )}
-                          {(doc.apis ?? []).length > 3 && (
-                            <span className="text-[10px] text-neutral-400">+{(doc.apis as any[]).length - 3}</span>
-                          )}
-                        </div>
-                       </td> */}
+     
                        <td className="px-6 py-4 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {(doc.apis ?? []).length > 0 ? (
@@ -396,7 +370,7 @@ const openViewDetails = (doc: DocType) => {
                               )}
                             </>
                           ) : (
-                            <span className="text-xs text-neutral-400 italic">Pas d&apos;APIs</span>
+                            <span className="text-xs text-neutral-400 italic">{"Pas d'APIs"}</span>
                           )}
                         </div>
                       </td>
@@ -412,49 +386,36 @@ const openViewDetails = (doc: DocType) => {
                           >
                             <FiEye className="w-4 h-4" />
                           </button>
-                          {doc.status?.toLowerCase() === "pending" && (
-                            <>
+                            {doc.status?.toLowerCase() === "draft" && (
                               <button
-                                onClick={() => handleUpdateDoc(doc, "approved")}
+                                onClick={() => handleReview(doc)}
                                 disabled={saving}
                                 className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
-                                text-green-600 bg-green-50 border border-green-200
-                                hover:bg-green-100 disabled:opacity-50 transition shrink-0"
+                                          text-amber-600 bg-amber-50 border border-amber-200
+                                          hover:bg-amber-100 disabled:opacity-50 transition shrink-0"
                                 title="Soumettre pour review"
-                                >
-                                <FcApproval /> Approuvée
+                              >
+                                <FiSend className="w-3 h-3" /> Review
                               </button>
-                              <button
-                                onClick={() => handleUpdateDoc(doc, "Rejected")}
-                                disabled={saving}
-                                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
-                                text-red-600 bg-red-50 border border-red-200
-                                hover:bg-red-100 disabled:opacity-50 transition shrink-0"
-                                title="Soumettre pour review"
-                                >
-                                <BsXOctagon color="red" /> Rejeté
-                              </button>
-                            </>
-                          )}
-                          {profil?.id === doc?.user_creator?.id &&
+                            )}
+                          {doc.status?.toLowerCase() !== "approved" && 
                           <>
-                          <button
-                            onClick={() => openEdit(doc)}
-                            className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
-                                       transition opacity-0 group-hover:opacity-100"
-                                       title="Modifier"
-                          >
-                            <IconEdit />
-                          </button>
-                          
-                          <button
-                            onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
-                            className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
-                                       transition opacity-0 group-hover:opacity-100"
-                                       title="Supprimer"
-                          >
-                            <IconDelete />
-                          </button>
+                            <button
+                              onClick={() => openEdit(doc)}
+                              className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
+                              transition opacity-0 group-hover:opacity-100"
+                              title="Modifier"
+                              >
+                              <IconEdit />
+                            </button>
+                            <button
+                              onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
+                              className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
+                              transition opacity-0 group-hover:opacity-100"
+                              title="Supprimer"
+                              >
+                              <IconDelete />
+                            </button>
                           </>
                           }
                         </div>
@@ -533,20 +494,6 @@ const openViewDetails = (doc: DocType) => {
         <div>
           <label className={labelCls}>Description</label>
           <input name="description" defaultValue={editingDoc?.description || ""} placeholder="Courte description…" className={inputCls} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelCls}>Statut</label>
-            <select name="status" defaultValue={editingDoc?.status || doc_status[0]?.name} className={inputCls}>
-              {doc_status?.map((r: any) => <option key={r.id} value={r.name}>{r.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Développeur</label>
-            <select name="user_creator" defaultValue={editingDoc?.user_creator?.id?.toString() || usersList[0]?.id?.toString()} className={inputCls}>
-              {usersList?.map((r: any) => <option key={r.id} value={String(r.id)}>{r.name}</option>)}
-            </select>
-          </div>
         </div>
         <div>
           <label className={labelCls}>Date de soumission</label>

@@ -148,7 +148,7 @@ export default function DashboardPage() {
         <div className="absolute -right-10 -top-14 w-52 h-52 rounded-full bg-white/5" />
         <div className="absolute right-16 top-8 w-32 h-32 rounded-full bg-white/5" />
         <div className="relative z-10">
-          <h1 className="text-2xl font-semibold text-white">Tableau de bord Administrateur</h1>
+          <h1 className="text-2xl font-semibold text-white">Tableau de bord Développeur</h1>
           <p className="text-sm text-white/70 mt-1">{"Suivez l'activité de votre plateforme en temps réel"}</p>
         </div>
         <span className="relative z-10 text-xs font-mono text-white/60 bg-white/10 px-3 py-2 rounded-lg capitalize">

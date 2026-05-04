@@ -28,34 +28,67 @@ export default function Login() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    
     try {
+      // 1. Login pour obtenir le token
       const data = await login({ email, password });
-      if (
-        data === "password or email incorrect"
-      ) {
+      
+      if (data === "password or email incorrect") {
         setError("Identifiants incorrects. Veuillez réessayer.");
+        setLoading(false);
         return;
       }
+      
+      
+      // 2. Décoder le token
       const tokenDecoded = jwtDecode<DecodedToken>(data.access_token);
-      const me = dispatch(getMe());      
-      dispatch(setProfilCredentials({ profil: me }));
-
-      const userData = await dispatch(fetchUsers()).unwrap();
       
-      dispatch(setUserCredentials({ users: userData }));
-
-      const docData = await dispatch(fetchDocs()).unwrap();
+      // 3. Récupérer les infos de l'utilisateur connecté
+      // IMPORTANT: Utiliser .unwrap() pour obtenir les données
+      const meResponse = await dispatch(getMe()).unwrap();
       
-      dispatch(setDoc({ docs: docData }));
-      if(tokenDecoded?.role?.id == 1) {
-        router.replace("/admin");
-      }else if(tokenDecoded?.role?.id == 2){
-        router.replace("/developer");
+      if (meResponse) {
+        dispatch(setProfilCredentials({ profil: meResponse }));
       }
-    } catch (err) {
-      console.log(err);
       
-      setError("Une erreur est survenue. Veuillez réessayer.");
+      // 4. Récupérer tous les users (optionnel)
+      try {
+        const userData = await dispatch(fetchUsers()).unwrap();
+        dispatch(setUserCredentials({ users: userData }));
+      } catch (userError) {
+        console.error("Error fetching users:", userError);
+        // Continuer même si fetchUsers échoue
+      }
+      
+      // 5. Récupérer les docs (optionnel)
+      try {
+        const docData = await dispatch(fetchDocs()).unwrap();
+        dispatch(setDoc({ docs: docData }));
+      } catch (docError) {
+        console.error("Error fetching docs:", docError);
+        // Continuer même si fetchDocs échoue
+      }
+      
+      // 6. Redirection basée sur le rôle
+      if (tokenDecoded?.role?.id === 1) {
+        router.replace("/admin");
+      } else if (tokenDecoded?.role?.id === 2) {
+        router.replace("/developer");
+      } else {
+        router.replace("/dashboard");
+      }
+      
+    } catch (err: any) {
+      console.error("Login error details:", err);
+      
+      // Afficher un message d'erreur plus spécifique
+      if (err.message === "No token found") {
+        setError("Session expirée. Veuillez réessayer.");
+      } else if (err.message === "Unauthorized") {
+        setError("Non autorisé. Veuillez contacter l'administrateur.");
+      } else {
+        setError(err.message || "Une erreur est survenue. Veuillez réessayer.");
+      }
     } finally {
       setLoading(false);
     }
@@ -63,20 +96,16 @@ export default function Login() {
 
   return (
     <main className="min-h-screen flex items-center justify-center bg-[#f7f7f8] px-4">
-      {/* Decorative background accents */}
       <div aria-hidden className="pointer-events-none fixed inset-0 overflow-hidden">
         <div className="absolute -top-32 -left-32 w-120 h-120 rounded-full bg-[#c5262e]/8 blur-3xl" />
         <div className="absolute -bottom-24 -right-24 w-90 h-90 rounded-full bg-[#c5262e]/6 blur-3xl" />
       </div>
 
       <div className="relative w-full max-w-md">
-        {/* Card */}
         <div className="bg-white rounded-2xl shadow-xl shadow-black/8 border border-black/6 overflow-hidden">
-          {/* Top accent bar */}
           <div className="h-1 w-full bg-[#c5262e]" />
 
           <div className="px-10 pt-10 pb-12">
-            {/* Logo + title */}
             <div className="flex flex-col items-center mb-10">
               <Image
                 src="/logo-warning.png"
@@ -95,16 +124,14 @@ export default function Login() {
               </p>
             </div>
 
-            {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Username */}
               <div className="space-y-1.5">
                 <label htmlFor="username" className="block text-sm font-medium text-neutral-700">
-                  Username
+                  Email
                 </label>
                 <input
                   id="username"
-                  type="text"
+                  type="email"
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -116,14 +143,13 @@ export default function Login() {
                 />
               </div>
 
-              {/* Password */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
                     Mot de passe
                   </label>
                   <button
-                  onClick={()=> router.push("/auth/forget-pass")}
+                    onClick={() => router.push("/auth/forget-pass")}
                     type="button"
                     className="text-xs text-[#c5262e] hover:underline focus:outline-none"
                   >
@@ -154,7 +180,6 @@ export default function Login() {
                 </div>
               </div>
 
-              {/* Remember me */}
               <label className="flex items-center gap-2.5 cursor-pointer select-none">
                 <input
                   type="checkbox"
@@ -163,7 +188,6 @@ export default function Login() {
                 <span className="text-sm text-neutral-600">Se souvenir de moi</span>
               </label>
 
-              {/* Submit */}
               <button
                 type="submit"
                 disabled={loading}

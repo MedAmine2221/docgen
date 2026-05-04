@@ -15,6 +15,7 @@ export default function RefetchDataProviders({
   const docsList = useSelector((state: RootState) => state.docs.docs);
   const usersList = useSelector((state: RootState) => state.users.users);
   const me = useSelector((state: RootState) => state.profil.profil);
+  
   const dispatch = useAppDispatch()
   useEffect(() => {
     if (!docsList || docsList.length === 0) {

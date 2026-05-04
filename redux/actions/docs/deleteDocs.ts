@@ -3,7 +3,7 @@ import { createAsyncThunk } from "@reduxjs/toolkit";
 
 export const deleteDoc = createAsyncThunk(
   'docs/deleteDoc',
-  async (id: number, { rejectWithValue }) => {
+  async (id: string, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("No token found");

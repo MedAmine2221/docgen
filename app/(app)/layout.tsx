@@ -3,7 +3,8 @@
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
 import { IconLogout } from "@/components/icons/IconLogout";
-import { NAV_BOTTOM, NAV_ITEMS } from "@/constant";
+import { NAV_BOTTOM, NAV_ITEMS, NAV_ITEMS_Dev } from "@/constant";
+import { RootState } from "@/redux/store";
 import { getInitials, handleLogout } from "@/utils/functions";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
@@ -15,7 +16,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
   const [saving, setSaving] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
-
+  const me = useSelector((state: RootState) => state.profil.profil);
+  
   const isActive = (path: string) => pathname.startsWith(path);
   const profil = useSelector((state: any) => state.profil?.profil);
 
@@ -51,7 +53,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Principal
             </p>
           )}
-          {NAV_ITEMS.map(
+          {(me?.role?.name_eng === "ADMIN"? NAV_ITEMS : NAV_ITEMS_Dev).map(
             (item) =>
               item.disabled && (
                 <NavButton
@@ -112,7 +114,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </svg>
             </button>
             <span className="text-sm font-medium text-neutral-900">
-              {[...NAV_ITEMS, ...NAV_BOTTOM].find((i) => isActive(i.path))?.label ?? "Dashboard"}
+              {(me?.role?.name_eng === "ADMIN"? [...NAV_ITEMS, ...NAV_BOTTOM]: [...NAV_ITEMS_Dev, ...NAV_BOTTOM]).find((i) => isActive(i.path))?.label ?? "Dashboard"}
             </span>
           </div>
 
