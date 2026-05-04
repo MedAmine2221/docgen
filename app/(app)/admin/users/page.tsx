@@ -292,15 +292,7 @@ export default function UsersPage() {
         }
       >
         <div className="space-y-5">
-          {/* Warning message */}
-          {!editingUser && (
-            <div className="bg-blue-50 border border-blue-100 rounded-xl p-4">
-              <p className="text-sm text-blue-700">
-                ⚠️ The developer will receive an email verification link to activate their account.
-              </p>
-            </div>
-          )}
-
+        
           {/* First Name & Last Name in two columns */}
           <div className="space-y-1.5">
             <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">FullName</label>

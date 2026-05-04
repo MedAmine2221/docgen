@@ -528,7 +528,7 @@ const openViewDetails = (doc: DocType) => {
         </p>
         <div>
           <label className={labelCls}>Nom du document</label>
-          <input name="name" defaultValue={editingDoc?.name || ""} placeholder="ex: User Service" className={inputCls} />
+          <input name="name" defaultValue={editingDoc?.name || ""} placeholder="ex: commande carrefour" className={inputCls} />
         </div>
         <div>
           <label className={labelCls}>Description</label>
