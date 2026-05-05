@@ -164,7 +164,6 @@ const openViewDetails = (doc: DocType) => {
     setEditingApiIdx(null);
     setShowSlide(true);
   };
-console.log(me);
 
   const filtered = me?.docs?.filter((d: DocType) => {
     const q = search.toLowerCase();
