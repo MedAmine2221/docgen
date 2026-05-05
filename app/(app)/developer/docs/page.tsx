@@ -21,9 +21,6 @@ import {
 } from "react-icons/fi";
 
 /* ── helpers ──────────────────────────────────────────────────────── */
-const PALETTE = ["#c5262e","#2563eb","#16a34a","#d97706","#7c3aed","#0891b2","#db2777"];
-const avatarColor = (name = "") => PALETTE[name.charCodeAt(0) % PALETTE.length];
-const initials    = (name = "") => name.split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
 const formatDate  = (d: string) =>
   new Date(d).toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric" });
 
@@ -102,6 +99,8 @@ export default function Docs() {
 const [viewingDoc, setViewingDoc] = useState<DocType | null>(null);
 const [showViewModal, setShowViewModal] = useState(false);
 const openViewDetails = (doc: DocType) => {
+  console.log(doc);
+  
   setViewingDoc(doc);
   setShowViewModal(true);
 };
@@ -165,6 +164,7 @@ const openViewDetails = (doc: DocType) => {
     setEditingApiIdx(null);
     setShowSlide(true);
   };
+console.log(me);
 
   const filtered = me?.docs?.filter((d: DocType) => {
     const q = search.toLowerCase();
@@ -185,6 +185,7 @@ const openViewDetails = (doc: DocType) => {
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paginated   = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+console.log("filtered ",filtered);
 
   const counts = {
     approved: me?.docs?.filter((d: DocType) => ["approve","approved"].includes(d.status?.toLowerCase())).length ?? 0,
@@ -272,6 +273,7 @@ const openViewDetails = (doc: DocType) => {
     }
   };
   const visibleEntries = apiEntries.map((e, i) => ({ ...e, _idx: i })).filter(e => !e._markedForDelete);
+console.log(viewingDoc);
 
   return (
     <div className="space-y-4">
@@ -335,7 +337,6 @@ const openViewDetails = (doc: DocType) => {
               </thead>
               <tbody>
                 {paginated.map((doc: DocType) => {
-                  const color = avatarColor(doc.user_creator?.name ?? "");
                   return (
                     <tr key={doc.id} className="border-b border-neutral-50 last:border-0 hover:bg-neutral-50/70 transition-colors group">
                       <td className="px-6 py-4">
@@ -398,7 +399,7 @@ const openViewDetails = (doc: DocType) => {
                                 <FiSend className="w-3 h-3" /> Review
                               </button>
                             )}
-                          {doc.status?.toLowerCase() !== "approved" && 
+                          {doc.status?.toLowerCase() !== "approved" && doc.status?.toLowerCase() !== "approve" && 
                           <>
                             <button
                               onClick={() => openEdit(doc)}
@@ -657,112 +658,101 @@ const openViewDetails = (doc: DocType) => {
         </p>
       </Modal>
       {/* Modal de détails */}
-<Modal
-  open={showViewModal}
-  onClose={() => setShowViewModal(false)}
-  title="Détails du document"
-  footer={
-    <button
-      onClick={() => setShowViewModal(false)}
-      className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium hover:bg-[#a81e25] transition"
-    >
-      Fermer
-    </button>
-  }
->
-  {viewingDoc && (
-    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-      {/* Informations générales */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Informations générales
-        </h3>
-        <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Nom :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-medium">{viewingDoc.name}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Description :</span>
-            <span className="text-sm text-neutral-600 col-span-2">{viewingDoc.description || "—"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Statut :</span>
-            <div className="col-span-2"><StatusBadge status={viewingDoc.status} /></div>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Auteur :</span>
-            <div className="col-span-2 flex items-center gap-2">
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
-                style={{ background: avatarColor(viewingDoc.user_creator?.name ?? "") + "22", color: avatarColor(viewingDoc.user_creator?.name ?? "") }}
-              >
-                {initials(viewingDoc.user_creator?.name)}
+      <Modal
+        open={showViewModal}
+        onClose={() => setShowViewModal(false)}
+        title="Détails du document"
+        footer={
+          <button
+            onClick={() => setShowViewModal(false)}
+            className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium hover:bg-[#a81e25] transition"
+          >
+            Fermer
+          </button>
+        }
+      >
+        {viewingDoc && (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            {/* Informations générales */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Informations générales
+              </h3>
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Nom :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-medium">{viewingDoc.name}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Description :</span>
+                  <span className="text-sm text-neutral-600 col-span-2">{viewingDoc.description || "—"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Statut :</span>
+                  <div className="col-span-2"><StatusBadge status={viewingDoc.status} /></div>
+                </div>
+
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Date de soumission :</span>
+                  <span className="text-sm text-neutral-700 col-span-2">{formatDate(viewingDoc.submissionDate)}</span>
+                </div>
               </div>
-              <span className="text-sm text-neutral-700">{viewingDoc.user_creator?.name}</span>
+            </div>
+
+            {/* Configuration API */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Configuration API
+              </h3>
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Base URL :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.baseUrl || "—"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Common Header :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.commonHeader || "—"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Bearer Token :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">
+                    {viewingDoc.bearerToken ? viewingDoc.bearerToken.substring(0, 30) + "..." : "—"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Endpoints */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Endpoints ({viewingDoc.apis?.length || 0})
+              </h3>
+              <div className="space-y-2">
+                {(viewingDoc.apis ?? []).length > 0 ? (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-100">
+                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">Méthode</th>
+                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">Endpoint</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(viewingDoc.apis as any[]).map((api, idx) => (
+                        <tr key={idx} className="border-b border-neutral-50 last:border-0">
+                          <td className="py-2"><MethodBadge method={api.apiMethod} /></td>
+                          <td className="py-2"><span className="text-xs font-mono text-neutral-600 break-all">{api.endPoint}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-sm text-neutral-400 italic text-center py-4">Aucun endpoint configuré</p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Date de soumission :</span>
-            <span className="text-sm text-neutral-700 col-span-2">{formatDate(viewingDoc.submissionDate)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Configuration API */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Configuration API
-        </h3>
-        <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Base URL :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.baseUrl || "—"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Common Header :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.commonHeader || "—"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Bearer Token :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">
-              {viewingDoc.bearerToken ? viewingDoc.bearerToken.substring(0, 30) + "..." : "—"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Endpoints */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Endpoints ({viewingDoc.apis?.length || 0})
-        </h3>
-        <div className="space-y-2">
-          {(viewingDoc.apis ?? []).length > 0 ? (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-100">
-                  <th className="text-left py-2 text-xs text-neutral-400 font-medium">Méthode</th>
-                  <th className="text-left py-2 text-xs text-neutral-400 font-medium">Endpoint</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(viewingDoc.apis as any[]).map((api, idx) => (
-                  <tr key={idx} className="border-b border-neutral-50 last:border-0">
-                    <td className="py-2"><MethodBadge method={api.apiMethod} /></td>
-                    <td className="py-2"><span className="text-xs font-mono text-neutral-600 break-all">{api.endPoint}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-sm text-neutral-400 italic text-center py-4">Aucun endpoint configuré</p>
-          )}
-        </div>
-      </div>
-    </div>
-  )}
-</Modal>
+        )}
+      </Modal>
     </div>
   );
 }
