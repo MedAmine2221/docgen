@@ -184,11 +184,11 @@ const openViewDetails = (doc: DocType) => {
   const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
   const paginated   = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
-console.log("filtered ",filtered);
 
   const counts = {
     approved: me?.docs?.filter((d: DocType) => ["approve","approved"].includes(d.status?.toLowerCase())).length ?? 0,
     pending:  me?.docs?.filter((d: DocType) => d.status?.toLowerCase() === "pending").length ?? 0,
+    draft:  me?.docs?.filter((d: DocType) => d.status?.toLowerCase() === "draft").length ?? 0,
     rejected: me?.docs?.filter((d: DocType) => d.status?.toLowerCase() === "rejected").length ?? 0,
   };
 
@@ -298,7 +298,7 @@ console.log(viewingDoc);
                      focus:border-[#c5262e] transition min-w-40"
         >
           <option value="all">Tous les statuts</option>
-          <option value="draft">Brouillon ({counts.approved})</option>
+          <option value="draft">Brouillon ({counts.draft})</option>
           <option value="approved">Approuvés ({counts.approved})</option>
           <option value="pending">En attente ({counts.pending})</option>
           <option value="rejected">Rejetés ({counts.rejected})</option>
