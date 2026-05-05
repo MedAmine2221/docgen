@@ -263,6 +263,8 @@ export default function UsersPage() {
 
       {/* Slideover Add / Edit - Modernized Form */}
       <Slideover
+        key={editingUser ? editingUser.id : "new-user"}   // ← AJOUT
+
         open={showSlide}
         onSubmit={handleSubmit}
         onClose={() => {
