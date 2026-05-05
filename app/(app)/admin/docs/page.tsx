@@ -97,9 +97,7 @@ const PAGE_SIZE = 8;
 export default function Docs() {
   const dispatch  = useAppDispatch();
   const docsList  = useSelector((state: RootState) => state.docs.docs) ?? [];
-  const profil = useSelector((item: RootState) => item.profil.profil);
-  console.log(profil?.id);
-  
+  const profil = useSelector((item: RootState) => item.profil.profil);  
   const filtredDocList = useMemo(()=> {
     return docsList.filter((item: any)=> item.status.toLowerCase() !== "draft")
   },[docsList])

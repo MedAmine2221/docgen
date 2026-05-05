@@ -126,8 +126,8 @@ export default function UsersPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Developer Management</h1>
-          <p className="text-sm text-gray-500 mt-1">Manage and monitor developer accounts</p>
+          <h1 className="text-2xl font-bold text-gray-900">Users Management</h1>
+          <p className="text-sm text-gray-500 mt-1">Manage and monitor users accounts</p>
         </div>
         <button
           onClick={openAdd}

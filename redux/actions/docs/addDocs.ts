@@ -77,9 +77,7 @@ export const addDoc = createAsyncThunk(
         return newDoc;
       }
 
-      const finalDoc = await getDocResponse.json();
-      console.log("finalDoc ", finalDoc);
-      
+      const finalDoc = await getDocResponse.json();      
       return finalDoc;
       
     } catch (error: any) {

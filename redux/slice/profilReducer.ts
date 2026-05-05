@@ -31,9 +31,7 @@ export const profilSlice = createSlice({
       })
 
       .addCase(addDoc.fulfilled, (state, action) => {
-        if (state.profil?.docs) {   
-          console.log("action.payload ",action.payload);
-                 
+        if (state.profil?.docs) {                    
           const newDoc = {
             ...action.payload,
             apis: action.payload.apis ?? [],

@@ -98,9 +98,7 @@ export default function Docs() {
   
 const [viewingDoc, setViewingDoc] = useState<DocType | null>(null);
 const [showViewModal, setShowViewModal] = useState(false);
-const openViewDetails = (doc: DocType) => {
-  console.log(doc);
-  
+const openViewDetails = (doc: DocType) => {  
   setViewingDoc(doc);
   setShowViewModal(true);
 };
@@ -272,8 +270,6 @@ const openViewDetails = (doc: DocType) => {
     }
   };
   const visibleEntries = apiEntries.map((e, i) => ({ ...e, _idx: i })).filter(e => !e._markedForDelete);
-console.log(viewingDoc);
-
   return (
     <div className="space-y-4">
 
