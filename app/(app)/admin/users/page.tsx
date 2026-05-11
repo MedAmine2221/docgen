@@ -9,12 +9,11 @@ import { deleteUser } from "@/redux/actions/users/deleteUser";
 import { UserType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
-import { Slideover } from "@/components/SlideOver";
 import { IconEdit } from "@/components/icons/IconEdit";
 import { IconDelete } from "@/components/icons/IconDelete";
 import { IconPlus } from "@/components/icons/IconPlus";
 import { AVATAR_COLORS, roles } from "@/constant";
-import { FiEye, FiEyeOff, FiSearch, FiX, FiUser, FiShield } from "react-icons/fi";
+import { FiEye, FiEyeOff, FiSearch, FiX, FiUser, FiShield, FiTrash2 } from "react-icons/fi";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 
 const getInitials = (n: string) => n.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
@@ -31,7 +30,7 @@ export default function UsersPage() {
   const [showSlide, setShowSlide] = useState(false);
   const [showDelete, setShowDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [formError, setFormError] = useState<string | null>(null);
   useEffect(() => {
     if (!userList || userList.length === 0) {
       dispatch(fetchUsers());
@@ -48,14 +47,26 @@ export default function UsersPage() {
     setSaving(true);
 
     const formData = new FormData(e.currentTarget);
-    const name = formData.get("name") as string;
-    const email = formData.get("email") as string;
+    const name   = (formData.get("name") as string).trim();
+    const email  = (formData.get("email") as string).trim();
     const roleId = formData.get("roleId") as string;
 
-    if (!name|| !email) {
+    // ── Validation ──────────────────────────────────────────────────
+    if (!name || !email) {
+      setFormError("Veuillez remplir tous les champs obligatoires.");
       setSaving(false);
       return;
     }
+    if (!editingUser) {
+      const password = (formData.get("password") as string).trim();
+      if (!password) {
+        setFormError("Le mot de passe est obligatoire.");
+        setSaving(false);
+        return;
+      }
+    }
+    setFormError(null);
+    // ────────────────────────────────────────────────────────────────
 
     try {
       if (editingUser) {
@@ -64,14 +75,9 @@ export default function UsersPage() {
           userData: { name, email, role_id: roleId }
         })).unwrap();
       } else {
-        const password = formData.get("password") as string;
-        if (!password) {
-          setSaving(false);
-          return;
-        }
+        const password = (formData.get("password") as string).trim();
         await dispatch(addUser({ name, email, password, role_id: roleId })).unwrap();
       }
-      
       setShowSlide(false);
       setEditingUser(null);
     } catch (error) {
@@ -80,7 +86,6 @@ export default function UsersPage() {
       setSaving(false);
     }
   };
-
   const openAdd = () => {
     setEditingUser(null);
     setShowSlide(true);
@@ -262,97 +267,121 @@ export default function UsersPage() {
       </div>
 
       {/* Slideover Add / Edit - Modernized Form */}
-      <Slideover
-        key={editingUser ? editingUser.id : "new-user"}   // ← AJOUT
+      {showSlide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => {
+              setShowSlide(false);
+              setEditingUser(null);
+              setShowPassword(false);
+            }}
+          />
 
-        open={showSlide}
-        onSubmit={handleSubmit}
-        onClose={() => {
-          setShowSlide(false);
-          setEditingUser(null);
-          setShowPassword(false);
-        }}
-        title={editingUser ? "Edit User" : "Add New User"}
-        footer={
-          <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={() => setShowSlide(false)}
-              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition-all duration-200"
-            >
-              Cancel
-            </button>
-            <button
-              disabled={saving}
-              type="submit"
-              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-linear-to-r from-[#c5262e] to-[#a81e25] text-white hover:shadow-lg disabled:opacity-60 transition-all duration-200 flex items-center justify-center gap-2"
-            >
-              {saving && <Spinner white />}
-              {editingUser ? "Save Changes" : "Add User"}
-            </button>
-          </div>
-        }
-      >
-        <div className="space-y-5">
-        
-          {/* First Name & Last Name in two columns */}
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">FullName</label>
-            <input
-              name="name"
-              defaultValue={editingUser?.name|| ""}
-              placeholder="John Doe"
-              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</label>
-            <input
-              name="email"
-              type="email"
-              defaultValue={editingUser?.email || ""}
-              placeholder="f.karbia@warning.fr"
-              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
-            />
-          </div>
+          {/* Modal content */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10 overflow-hidden">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-gray-100">
+              <h2 className="text-base font-semibold text-gray-900">
+                {editingUser ? "Edit User" : "Add New User"}
+              </h2>
+              <button
+                onClick={() => { setShowSlide(false); setEditingUser(null); setShowPassword(false); setFormError(null); }}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            </div>
 
-          {!editingUser && (
-            <div className="space-y-1.5">
-              <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Password</label>
-              <div className="relative">
-                <input
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="********"
-                  className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition pr-11"
-                />
+            {/* Form */}
+            <form onSubmit={handleSubmit}>
+              <div className="px-6 py-5 space-y-5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">FullName</label>
+                  <input
+                    name="name"
+                    defaultValue={editingUser?.name || ""}
+                    placeholder="John Doe"
+                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Email</label>
+                  <input
+                    name="email"
+                    type="email"
+                    defaultValue={editingUser?.email || ""}
+                    placeholder="f.karbia@warning.fr"
+                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
+                  />
+                </div>
+
+                {!editingUser && (
+                  <div className="space-y-1.5">
+                    <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Password</label>
+                    <div className="relative">
+                      <input
+                        name="password"
+                        type={showPassword ? "text" : "password"}
+                        placeholder="********"
+                        className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition pr-11"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                      >
+                        {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Role</label>
+                  <select
+                    name="roleId"
+                    defaultValue={editingUser?.role?.id?.toString() || roles[0]?.id?.toString()}
+                    className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
+                  >
+                    {roles?.map((r: any) => (
+                      <option key={r.id} value={String(r.id)}>
+                        {r.name_eng === "ADMIN" ? "Administrator" : "Developer"}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+              {formError && (
+                <div className="mx-6 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
+                  <FiX className="w-4 h-4 text-red-500 shrink-0" />
+                  <p className="text-xs font-medium text-red-600">{formError}</p>
+                </div>
+              )}
+              {/* Footer */}
+              <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
                 <button
                   type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition"
+                  onClick={() => setShowSlide(false)}
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all duration-200"
                 >
-                  {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                  Cancel
+                </button>
+                <button
+                  disabled={saving}
+                  type="submit"
+                  className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-gradient-to-r from-[#c5262e] to-[#a81e25] text-white hover:shadow-lg disabled:opacity-60 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                  {saving && <Spinner white />}
+                  {editingUser ? "Save Changes" : "Add User"}
                 </button>
               </div>
-            </div>
-          )}
-
-          <div className="space-y-1.5">
-            <label className="block text-xs font-semibold text-gray-700 uppercase tracking-wide">Role</label>
-            <select
-              name="roleId"
-              defaultValue={editingUser?.role?.id?.toString() || roles[0]?.id?.toString()}
-              className="w-full px-4 py-2.5 text-sm rounded-xl border border-gray-200 bg-gray-50 text-gray-900 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e] transition"
-            >
-              {roles?.map((r: any) => (
-                <option key={r.id} value={String(r.id)}>
-                  {r.name_eng === "ADMIN" ? "Administrator" : "Developer"}
-                </option>
-              ))}
-            </select>
+            </form>
           </div>
         </div>
-      </Slideover>
+      )}
 
       {/* Delete Modal */}
       <Modal
@@ -379,8 +408,8 @@ export default function UsersPage() {
         }
       >
         <div className="text-center">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-            <IconDelete />
+          <div className="w-16 h-16 text-red-400 rounded-full flex items-center justify-center mx-auto mb-4">
+            <FiTrash2 size={25} />
           </div>
           <h3 className="text-lg font-semibold text-gray-900 mb-2">Confirm Deletion</h3>
           <p className="text-sm text-gray-500">

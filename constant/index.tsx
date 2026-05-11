@@ -3,6 +3,7 @@ import { IconDocs } from "@/components/icons/IconDocs";
 import { IconSettings } from "@/components/icons/IconSettings";
 import { IconUsers } from "@/components/icons/IconUsers";
 import { FiHome } from "react-icons/fi";
+import { SiLogseq } from "react-icons/si";
 const TODAY = new Date().toLocaleDateString("fr-FR", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
 });
@@ -61,9 +62,10 @@ const API_METHOD = [
 ] 
 
 const NAV_ITEMS = [
-  { label: "Admin Dashboard", path: "/admin/dashboard",    icon: <FiHome />, disabled: true },
-  { label: "Gérer les users", path: "/admin/users",    icon: <IconUsers />, disabled: true },
-  { label: "Gérer les docs",  path: "/admin/docs",     icon: <IconDocs />, disabled: true  },
+  { label: "Page d'acceuil Admin", path: "/admin/dashboard",    icon: <FiHome />, disabled: true },
+  { label: "Gérer les utilisateur", path: "/admin/users",    icon: <IconUsers />, disabled: true },
+  { label: "Gérer les Documents",  path: "/admin/docs",     icon: <IconDocs />, disabled: true  },
+  { label: "Historique",  path: "/admin/logs",     icon: <SiLogseq />, disabled: true  },
   { label: "Gérer Votre Profil",  path: "/profil",     icon: <IconApi />, disabled: false  },
 
 ];

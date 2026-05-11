@@ -116,7 +116,7 @@ const openViewDetails = (doc: DocType) => {
   const [search,        setSearch]        = useState("");
   const [filterStatus,  setFilterStatus]  = useState("all");
   const [page,          setPage]          = useState(1);
-
+  const [formError, setFormError] = useState<string | null>(null);
   const [apiEntries,    setApiEntries]    = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
   const [editingApiIdx, setEditingApiIdx] = useState<number | null>(null);
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
@@ -199,26 +199,43 @@ const openViewDetails = (doc: DocType) => {
     setSaving(true);
     const fd = new FormData(e.currentTarget);
     const g  = (k: string) => fd.get(k) as string;
-    const selectedUser = usersList.find((u: UserType) => u.id === Number(g("user_creator")));
-    if (!selectedUser) { setSaving(false); return; }
+
+    // ── Validation ──────────────────────────────────────────────────
+    const name           = g("name").trim();
+    const description    = g("description").trim();
+    const submissionDate = g("submissionDate").trim();
+    const baseUrl        = g("baseUrl").trim();
+    const selectedUser   = usersList.find((u: UserType) => u.id === Number(g("user_creator")));
+    const validApis      = apiEntries.filter(a => !a._markedForDelete && a.endPoint.trim() !== "");
+
+    if (!name || !description || !submissionDate || !baseUrl || !selectedUser) {
+      setFormError("Veuillez remplir tous les champs obligatoires.");
+      setSaving(false);
+      return;
+    }
+    if (validApis.length === 0) {
+      setFormError("Veuillez ajouter au moins un endpoint valide.");
+      setSaving(false);
+      return;
+    }
+    setFormError(null);
+    // ────────────────────────────────────────────────────────────────
 
     try {
-      // Separate APIs by operation type
       const apisToDelete = apiEntries.filter(a => a._markedForDelete && a.id);
-      const apisToKeep = apiEntries.filter(a => !a._markedForDelete);
-      const apisToAdd = apisToKeep.filter(a => !a.id && a.endPoint.trim() !== "");
+      const apisToKeep   = apiEntries.filter(a => !a._markedForDelete);
+      const apisToAdd    = apisToKeep.filter(a => !a.id && a.endPoint.trim() !== "");
       const apisToUpdate = apisToKeep.filter(a => a.id && a.endPoint.trim() !== "");
 
       const docPayload = {
-        name:           g("name"),
-        description:    g("description"),
+        name,
+        description,
         status:         g("status"),
-        submissionDate: g("submissionDate"),
-        baseUrl:        g("baseUrl"),
+        submissionDate,
+        baseUrl,
         commonHeader:   g("commonHeader"),
         bearerToken:    g("bearerToken"),
         user_creator:   selectedUser,
-        // Send separate arrays for CRUD operations
         apisToAdd,
         apisToUpdate,
         apisToDelete,
@@ -227,12 +244,7 @@ const openViewDetails = (doc: DocType) => {
       if (editingDoc) {
         await dispatch(updateDoc({ id: String(editingDoc.id), docData: docPayload })).unwrap();
       } else {
-        // For new document, only send APIs to add
-        await dispatch(addDoc(
-        {
-          ...docPayload,
-          apis: apisToAdd,
-        })).unwrap();
+        await dispatch(addDoc({ ...docPayload, apis: apisToAdd })).unwrap();
       }
       setShowSlide(false);
       setEditingDoc(null);
@@ -500,186 +512,199 @@ const openViewDetails = (doc: DocType) => {
         )}
       </div>
 
-      {/* Slideover */}
-      <Slideover
-        open={showSlide}
-        onSubmit={handleSubmit}
-        onClose={() => { setShowSlide(false); setEditingDoc(null); }}
-        title={editingDoc ? "Modifier le document" : "Nouveau document"}
-        footer={
-          <>
-            <button type="button" onClick={() => setShowSlide(false)}
-              className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition">
-              Annuler
-            </button>
-            <button disabled={saving} type="submit"
-              className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
-                         hover:bg-[#a81e25] disabled:opacity-60 transition flex items-center gap-2">
-              {saving && <Spinner white />}
-              {editingDoc ? "Enregistrer" : "Ajouter"}
-            </button>
-          </>
-        }
-      >
-        <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-          <FiFileText className="w-3.5 h-3.5" /> Informations générales
-        </p>
-        <div>
-          <label className={labelCls}>Nom du document</label>
-          <input name="name" defaultValue={editingDoc?.name || ""} placeholder="ex: commande carrefour" className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Description</label>
-          <input name="description" defaultValue={editingDoc?.description || ""} placeholder="Courte description…" className={inputCls} />
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div>
-            <label className={labelCls}>Statut</label>
-            <select name="status" defaultValue={editingDoc?.status || doc_status[0]?.name} className={inputCls}>
-              {doc_status?.map((r: any) => <option key={r.id} value={r.name}>{r.name}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Développeur</label>
-            <select name="user_creator" defaultValue={editingDoc?.user_creator?.id?.toString() || usersList[0]?.id?.toString()} className={inputCls}>
-              {usersList?.map((r: any) => <option key={r.id} value={String(r.id)}>{r.name}</option>)}
-            </select>
-          </div>
-        </div>
-        <div>
-          <label className={labelCls}>Date de soumission</label>
-          <input name="submissionDate" type="datetime-local"
-            defaultValue={editingDoc?.submissionDate ? editingDoc.submissionDate.slice(0, 16) : ""}
-            className={inputCls} />
-        </div>
+      {/* Modal Add / Edit - Centrée */}
+      {showSlide && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/40 backdrop-blur-sm"
+            onClick={() => { setShowSlide(false); setEditingDoc(null); }}
+          />
 
-        <div className="border-t border-neutral-100 pt-4 mt-1">
-          <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-            <FiGlobe className="w-3.5 h-3.5" /> Configuration API
-          </p>
-        </div>
-        <div>
-          <label className={labelCls}>Base URL</label>
-          <input name="baseUrl" defaultValue={editingDoc?.baseUrl || ""} placeholder="https://api.example.com" className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Common Header</label>
-          <input name="commonHeader" defaultValue={editingDoc?.commonHeader || ""}
-            placeholder={`{"Content-Type":"application/json"}`} className={inputCls} />
-        </div>
-        <div>
-          <label className={labelCls}>Bearer Token</label>
-          <input name="bearerToken" defaultValue={editingDoc?.bearerToken || ""}
-            placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" className={inputCls} />
-        </div>
+          {/* Modal content */}
+          <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10 flex flex-col max-h-[90vh]">
+            {/* Header */}
+            <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100 shrink-0">
+              <h2 className="text-base font-semibold text-gray-900">
+                {editingDoc ? "Modifier le document" : "Nouveau document"}
+              </h2>
+              <button
+                onClick={() => { setShowSlide(false); setEditingDoc(null); setFormError(null); }}
+                className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
+              >
+                <FiX className="w-4 h-4" />
+              </button>
+            </div>
 
-        {/* Endpoints Section */}
-        <div className="border-t border-neutral-100 pt-4 mt-1">
-          <div className="flex items-center justify-between mb-3">
-            <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
-              <FiGlobe className="w-3.5 h-3.5" /> Endpoints
-            </p>
-            <button
-              type="button"
-              onClick={addApiEntry}
-              className="flex items-center gap-1 text-xs text-[#c5262e] hover:text-[#a81e25] font-medium transition"
-            >
-              <FiPlus className="w-3.5 h-3.5" /> Ajouter un endpoint
-            </button>
-          </div>
-
-          <div className="space-y-2">
-            {visibleEntries.map((entry) => {
-              const idx = entry._idx;
-              const isEditing = editingApiIdx === idx;
-              const isExisting = !!entry.id;
-
-              return (
-                <div
-                  key={idx}
-                  className={`rounded-xl border transition ${
-                    isEditing
-                      ? "border-[#c5262e]/30 bg-[#c5262e]/3"
-                      : isExisting
-                      ? "border-neutral-200 bg-white"
-                      : "border-dashed border-neutral-200 bg-neutral-50"
-                  }`}
-                >
-                  {isEditing ? (
-                    <div className="flex items-center gap-2 p-2">
-                      <select
-                        value={editingApiDraft.apiMethod}
-                        onChange={(e) => setEditingApiDraft(d => ({ ...d, apiMethod: e.target.value }))}
-                        className="px-2 py-1.5 text-xs font-bold rounded-lg border border-neutral-200 bg-white
-                                   text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
-                                   focus:border-[#c5262e] transition w-21.5 shrink-0"
-                      >
-                        {HTTP_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
-                      </select>
-                      <input
-                        value={editingApiDraft.endPoint}
-                        onChange={(e) => setEditingApiDraft(d => ({ ...d, endPoint: e.target.value }))}
-                        placeholder="/users/:id"
-                        className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-neutral-200 bg-white
-                                   text-neutral-900 placeholder:text-neutral-400 font-mono
-                                   focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20 focus:border-[#c5262e] transition"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => confirmEditApi(idx)}
-                        className="p-1.5 rounded-lg text-green-500 hover:bg-green-50 transition shrink-0"
-                        title="Confirmer"
-                      >
-                        <FiCheck className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={cancelEditApi}
-                        className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 transition shrink-0"
-                        title="Annuler"
-                      >
-                        <FiX className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  ) : (
-                    <div className="flex items-center gap-2 px-3 py-2 group/api">
-                      <MethodBadge method={entry.apiMethod} />
-                      <span className="flex-1 text-xs font-mono text-neutral-600 truncate">
-                        {entry.endPoint || <span className="text-neutral-300 italic">endpoint…</span>}
-                      </span>
-                      {isExisting && (
-                        <span className="text-[9px] font-semibold text-neutral-300 uppercase tracking-wide shrink-0 mr-1">
-                          saved
-                        </span>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => startEditApi(idx)}
-                        className="p-1 rounded-md text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100
-                                   transition opacity-0 group-hover/api:opacity-100 shrink-0"
-                        title="Modifier"
-                      >
-                        <IconEdit />
-                      </button>
-                      {(isExisting || visibleEntries.length > 1) && (
-                        <button
-                          type="button"
-                          onClick={() => removeApiEntry(idx)}
-                          className="p-1 rounded-md text-neutral-300 hover:text-red-500 hover:bg-red-50
-                                     transition opacity-0 group-hover/api:opacity-100 shrink-0"
-                          title="Supprimer"
-                        >
-                          <FiTrash2 className="w-3.5 h-3.5" />
-                        </button>
-                      )}
-                    </div>
-                  )}
+            {/* Scrollable body */}
+            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                  <FiFileText className="w-3.5 h-3.5" /> Informations générales
+                </p>
+                <div>
+                  <label className={labelCls}>Nom du document</label>
+                  <input name="name" defaultValue={editingDoc?.name || ""} placeholder="ex: commande carrefour" className={inputCls} />
                 </div>
-              );
-            })}
+                <div>
+                  <label className={labelCls}>Description</label>
+                  <input name="description" defaultValue={editingDoc?.description || ""} placeholder="Courte description…" className={inputCls} />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className={labelCls}>Statut</label>
+                    <select name="status" defaultValue={editingDoc?.status || doc_status[0]?.name} className={inputCls}>
+                      {doc_status?.map((r: any) => <option key={r.id} value={r.name}>{r.name}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className={labelCls}>Développeur</label>
+                    <select name="user_creator" defaultValue={editingDoc?.user_creator?.id?.toString() || usersList[0]?.id?.toString()} className={inputCls}>
+                      {usersList?.map((r: any) => <option key={r.id} value={String(r.id)}>{r.name}</option>)}
+                    </select>
+                  </div>
+                </div>
+                <div>
+                  <label className={labelCls}>Date de soumission</label>
+                  <input name="submissionDate" type="datetime-local"
+                    defaultValue={editingDoc?.submissionDate ? editingDoc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16)}
+                    className={inputCls} />
+                </div>
+
+                <div className="border-t border-neutral-100 pt-4 mt-1">
+                  <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
+                    <FiGlobe className="w-3.5 h-3.5" /> Configuration API
+                  </p>
+                </div>
+                <div>
+                  <label className={labelCls}>Base URL</label>
+                  <input name="baseUrl" defaultValue={editingDoc?.baseUrl || ""} placeholder="https://api.example.com" className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Common Header</label>
+                  <input name="commonHeader" defaultValue={editingDoc?.commonHeader || ""}
+                    placeholder={`{"Content-Type":"application/json"}`} className={inputCls} />
+                </div>
+                <div>
+                  <label className={labelCls}>Bearer Token</label>
+                  <input name="bearerToken" defaultValue={editingDoc?.bearerToken || ""}
+                    placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" className={inputCls} />
+                </div>
+
+                {/* Endpoints */}
+                <div className="border-t border-neutral-100 pt-4 mt-1">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
+                      <FiGlobe className="w-3.5 h-3.5" /> Endpoints
+                    </p>
+                    <button
+                      type="button"
+                      onClick={addApiEntry}
+                      className="flex items-center gap-1 text-xs text-[#c5262e] hover:text-[#a81e25] font-medium transition"
+                    >
+                      <FiPlus className="w-3.5 h-3.5" /> Ajouter un endpoint
+                    </button>
+                  </div>
+
+                  <div className="space-y-2">
+                    {visibleEntries.map((entry) => {
+                      const idx = entry._idx;
+                      const isEditing = editingApiIdx === idx;
+                      const isExisting = !!entry.id;
+
+                      return (
+                        <div
+                          key={idx}
+                          className={`rounded-xl border transition ${
+                            isEditing
+                              ? "border-[#c5262e]/30 bg-[#c5262e]/3"
+                              : isExisting
+                              ? "border-neutral-200 bg-white"
+                              : "border-dashed border-neutral-200 bg-neutral-50"
+                          }`}
+                        >
+                          {isEditing ? (
+                            <div className="flex items-center gap-2 p-2">
+                              <select
+                                value={editingApiDraft.apiMethod}
+                                onChange={(e) => setEditingApiDraft(d => ({ ...d, apiMethod: e.target.value }))}
+                                className="px-2 py-1.5 text-xs font-bold rounded-lg border border-neutral-200 bg-white
+                                          text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
+                                          focus:border-[#c5262e] transition w-21.5 shrink-0"
+                              >
+                                {HTTP_METHODS.map(m => <option key={m} value={m}>{m}</option>)}
+                              </select>
+                              <input
+                                value={editingApiDraft.endPoint}
+                                onChange={(e) => setEditingApiDraft(d => ({ ...d, endPoint: e.target.value }))}
+                                placeholder="/users/:id"
+                                className="flex-1 px-3 py-1.5 text-sm rounded-lg border border-neutral-200 bg-white
+                                          text-neutral-900 placeholder:text-neutral-400 font-mono
+                                          focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20 focus:border-[#c5262e] transition"
+                              />
+                              <button type="button" onClick={() => confirmEditApi(idx)}
+                                className="p-1.5 rounded-lg text-green-500 hover:bg-green-50 transition shrink-0">
+                                <FiCheck className="w-3.5 h-3.5" />
+                              </button>
+                              <button type="button" onClick={cancelEditApi}
+                                className="p-1.5 rounded-lg text-neutral-400 hover:bg-neutral-100 transition shrink-0">
+                                <FiX className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <div className="flex items-center gap-2 px-3 py-2 group/api">
+                              <MethodBadge method={entry.apiMethod} />
+                              <span className="flex-1 text-xs font-mono text-neutral-600 truncate">
+                                {entry.endPoint || <span className="text-neutral-300 italic">endpoint…</span>}
+                              </span>
+                              {isExisting && (
+                                <span className="text-[9px] font-semibold text-neutral-300 uppercase tracking-wide shrink-0 mr-1">
+                                  saved
+                                </span>
+                              )}
+                              <button type="button" onClick={() => startEditApi(idx)}
+                                className="p-1 rounded-md text-neutral-300 hover:text-neutral-600 hover:bg-neutral-100
+                                          transition opacity-0 group-hover/api:opacity-100 shrink-0">
+                                <IconEdit />
+                              </button>
+                              {(isExisting || visibleEntries.length > 1) && (
+                                <button type="button" onClick={() => removeApiEntry(idx)}
+                                  className="p-1 rounded-md text-neutral-300 hover:text-red-500 hover:bg-red-50
+                                            transition opacity-0 group-hover/api:opacity-100 shrink-0">
+                                  <FiTrash2 className="w-3.5 h-3.5" />
+                                </button>
+                              )}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              {formError && (
+                <div className="mx-6 mb-0 px-4 py-2.5 rounded-xl bg-red-50 border border-red-200 flex items-center gap-2">
+                  <FiX className="w-4 h-4 text-red-500 shrink-0" />
+                  <p className="text-xs font-medium text-red-600">{formError}</p>
+                </div>
+              )}
+              {/* Footer */}
+              <div className="flex justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50 shrink-0">
+                <button type="button" onClick={() => { setShowSlide(false); setEditingDoc(null); setFormError(null); }}
+                  className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition">
+                  Annuler
+                </button>
+                <button disabled={saving} type="submit"
+                  className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
+                            hover:bg-[#a81e25] disabled:opacity-60 transition flex items-center gap-2">
+                  {saving && <Spinner white />}
+                  {editingDoc ? "Enregistrer" : "Ajouter"}
+                </button>
+              </div>
+            </form>
           </div>
         </div>
-      </Slideover>
+      )}
 
       {/* Delete Modal */}
       <Modal

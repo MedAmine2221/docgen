@@ -79,7 +79,11 @@ export default function DashboardPage() {
   useChart(barRef, () => ({
     type: "bar",
     data: {
-      labels: users.map((d) => d.name.split(" ")[0] + " " + d.name.split(" ")[1]?.[0] + "."),
+      labels: users.map((d) => {
+        const parts = d.name.trim().split(" ");
+        if (parts.length === 1) return parts[0];
+        return parts[0] + " " + parts[1][0] + ".";
+      }),  
       datasets: [{
         label: "Documents",
         data: users.map((d) => d.docs?.length),
