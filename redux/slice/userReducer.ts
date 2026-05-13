@@ -51,6 +51,8 @@ const usersSlice = createSlice({
       })
       .addCase(addUser.fulfilled, (state, action) => {
         state.loading = false;
+        console.log("heeeeeeee");
+        
         if(action.payload.role.id === "1"){
           state.users.push({...action.payload, role: {id: "1", name_fr: "ADMIN", name_eng: "ADMIN"}});
         }
@@ -59,6 +61,8 @@ const usersSlice = createSlice({
         }
       })
       .addCase(addUser.rejected, (state, action) => {
+        console.log("action.payload ", action.payload);
+        
         state.loading = false;
         state.error = action.payload as string;
       })

@@ -66,9 +66,7 @@ export default function UsersPage() {
       }
     }
     setFormError(null);
-    // ────────────────────────────────────────────────────────────────
-
-    try {
+  try {
       if (editingUser) {
         await dispatch(updateUser({
           id: editingUser.id,
@@ -76,12 +74,19 @@ export default function UsersPage() {
         })).unwrap();
       } else {
         const password = (formData.get("password") as string).trim();
-        await dispatch(addUser({ name, email, password, role_id: roleId })).unwrap();
+
+        await dispatch(
+          addUser({ name, email, password, role_id: roleId })
+        ).unwrap();
       }
+
       setShowSlide(false);
       setEditingUser(null);
-    } catch (error) {
+      setFormError(null);
+
+    } catch (error: any) {
       console.error("Operation failed:", error);
+      setFormError(error);
     } finally {
       setSaving(false);
     }

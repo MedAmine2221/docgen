@@ -1,11 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+"use client";;
 import { useState } from "react";
 import { useSelector } from "react-redux";
 import { DocType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
-import { Slideover } from "@/components/SlideOver";
 import { IconPlus } from "@/components/icons/IconPlus";
 import { IconEdit } from "@/components/icons/IconEdit";
 import { IconDelete } from "@/components/icons/IconDelete";
@@ -415,7 +414,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                                 <FiSend className="w-3 h-3" /> Review
                               </button>
                             )}
-                          {doc.status?.toLowerCase() !== "approved" && doc.status?.toLowerCase() !== "approve" && 
                           <>
                             <button
                               onClick={() => openEdit(doc)}
@@ -434,7 +432,6 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                               <IconDelete />
                             </button>
                           </>
-                          }
                         </div>
                        </td>
                     </tr>

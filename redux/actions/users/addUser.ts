@@ -26,9 +26,17 @@ export const addUser = createAsyncThunk(
         if (response.status === 401) throw new Error("Unauthorized");
         throw new Error("Failed to add user");
       }
-
+      
       const newUser = await response.json();
-      return newUser;
+      console.log(newUser);
+      if(newUser.message){
+        console.log("hello 1");
+        
+        return rejectWithValue(newUser.message);
+      }else{
+        console.log("hello 2");
+        return newUser;
+      }
     } catch (error: any) {
       return rejectWithValue(error.message);
     }

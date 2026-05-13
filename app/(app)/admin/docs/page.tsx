@@ -1,12 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+"use client";;
 import { useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { DocType, UserType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
-import { Slideover } from "@/components/SlideOver";
 import { IconPlus } from "@/components/icons/IconPlus";
 import { IconEdit } from "@/components/icons/IconEdit";
 import { IconDelete } from "@/components/icons/IconDelete";
@@ -22,6 +21,7 @@ import {
 } from "react-icons/fi";
 import { FcApproval } from "react-icons/fc";
 import { BsXOctagon } from "react-icons/bs";
+import { GoVersions } from "react-icons/go";
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 const PALETTE = ["#c5262e","#2563eb","#16a34a","#d97706","#7c3aed","#0891b2","#db2777"];
@@ -226,7 +226,17 @@ const openViewDetails = (doc: DocType) => {
       const apisToKeep   = apiEntries.filter(a => !a._markedForDelete);
       const apisToAdd    = apisToKeep.filter(a => !a.id && a.endPoint.trim() !== "");
       const apisToUpdate = apisToKeep.filter(a => a.id && a.endPoint.trim() !== "");
-
+      if (
+        editingDoc &&
+        g("cause") === "Nouveau EndPoint" &&
+        apisToAdd.length === 0
+      ) {
+        setFormError(
+          "Veuillez ajouter au moins un nouvel endpoint pour cette modification."
+        );
+        setSaving(false);
+        return;
+      }
       const docPayload = {
         name,
         description,
@@ -239,6 +249,7 @@ const openViewDetails = (doc: DocType) => {
         apisToAdd,
         apisToUpdate,
         apisToDelete,
+        cause: g("cause") ?? null,
       };
 
       if (editingDoc) {
@@ -280,6 +291,7 @@ const openViewDetails = (doc: DocType) => {
       setSaving(false);
     }
   };
+  
   return (
     <div className="space-y-4">
 
@@ -370,25 +382,6 @@ const openViewDetails = (doc: DocType) => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={doc.status} />
                        </td>
-                      {/* <td className="px-6 py-4 hidden lg:table-cell">
-                        <div className="flex flex-wrap gap-1">
-                          {(doc.apis ?? []).length > 0 ? (
-                            (doc.apis as any[]).slice(0, 3).map((api: any, i: number) => (
-                              <div key={i} className="flex items-center gap-1">
-                                <MethodBadge method={api.apiMethod} />
-                                <span className="text-[10px] text-neutral-400 font-mono truncate max-w-[80px]">
-                                  {api.endPoint}
-                                </span>
-                              </div>
-                            ))
-                          ) : (
-                            <span className="text-xs text-neutral-300 italic">—</span>
-                          )}
-                          {(doc.apis ?? []).length > 3 && (
-                            <span className="text-[10px] text-neutral-400">+{(doc.apis as any[]).length - 3}</span>
-                          )}
-                        </div>
-                       </td> */}
                        <td className="px-6 py-4 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {(doc.apis ?? []).length > 0 ? (
@@ -448,23 +441,23 @@ const openViewDetails = (doc: DocType) => {
                           )}
                           {profil?.id === doc?.user_creator?.id &&
                           <>
-                          <button
-                            onClick={() => openEdit(doc)}
-                            className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
-                                       transition opacity-0 group-hover:opacity-100"
-                                       title="Modifier"
-                          >
-                            <IconEdit />
-                          </button>
-                          
-                          <button
-                            onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
-                            className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
-                                       transition opacity-0 group-hover:opacity-100"
-                                       title="Supprimer"
-                          >
-                            <IconDelete />
-                          </button>
+                            <button
+                              onClick={() => openEdit(doc)}
+                              className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
+                                        transition opacity-0 group-hover:opacity-100"
+                                        title="Modifier"
+                            >
+                              <IconEdit />
+                            </button>
+                            
+                            <button
+                              onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
+                              className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
+                                        transition opacity-0 group-hover:opacity-100"
+                                        title="Supprimer"
+                            >
+                              <IconDelete />
+                            </button>
                           </>
                           }
                         </div>
@@ -539,9 +532,27 @@ const openViewDetails = (doc: DocType) => {
             {/* Scrollable body */}
             <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
+                <p className="text-base font-semibold text-neutral-400 tracking-wide mb-3 flex items-center gap-1.5">
+                  <GoVersions className="w-4 h-4" /> Version {editingDoc?.version}
+                </p>
                 <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                   <FiFileText className="w-3.5 h-3.5" /> Informations générales
                 </p>
+                {editingDoc && 
+                  <div>
+                    <label className={labelCls}>Cause de modification</label>
+                    <select
+                      name="cause"
+                      className="px-3 py-2.5 text-sm rounded-xl border border-neutral-200 bg-neutral-50
+                                text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
+                                focus:border-[#c5262e] transition min-w-40"
+                    >
+                      <option value="Bug">Bug</option>
+                      <option value="Nouveau EndPoint">Nouveau EndPoint</option>
+                      <option value="Changement du document">Changement du document</option>
+                    </select>
+                  </div>
+                }
                 <div>
                   <label className={labelCls}>Nom du document</label>
                   <input name="name" defaultValue={editingDoc?.name || ""} placeholder="ex: commande carrefour" className={inputCls} />
@@ -752,6 +763,9 @@ const openViewDetails = (doc: DocType) => {
       <div>
         <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
           Informations générales
+        </h3>
+        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+          Version : {viewingDoc?.version}
         </h3>
         <div className="space-y-2">
           <div className="grid grid-cols-3 gap-2">
