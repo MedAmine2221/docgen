@@ -47,6 +47,9 @@ const openViewDetails = (doc: DocType) => {
   setViewingDoc(doc);
   setShowViewModal(true);
 };
+const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+const [pendingCloseAction, setPendingCloseAction] = useState<(() => void) | null>(null);
+
   const [saving,        setSaving]        = useState(false);
   const [editingDoc,    setEditingDoc]    = useState<DocType | null>(null);
   const [deletingDoc,   setDeletingDoc]   = useState<DocType | null>(null);
@@ -72,6 +75,36 @@ const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
     apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
   });
 };
+const hasDocFormChanges = () => {
+  if (!showSlide) return false;
+  
+  if (editingDoc) {
+    // Mode édition - utiliser hasChanges existant
+    return hasChanges;
+  } else {
+    // Mode ajout - vérifier si des valeurs ont été saisies
+    const form = document.querySelector('form');
+    if (!form) return false;
+    
+    const formData = new FormData(form);
+    const name = formData.get("name") as string;
+    const description = formData.get("description") as string;
+    const baseUrl = formData.get("baseUrl") as string;
+    const hasAnyApi = apiEntries.some(api => api.endPoint.trim() !== "");
+    
+    return !!(name || description || baseUrl || hasAnyApi);
+  }
+};
+
+const attemptClose = (closeAction: () => void) => {
+  if (hasDocFormChanges()) {
+    setPendingCloseAction(() => closeAction);
+    setShowCloseConfirm(true);
+  } else {
+    closeAction();
+  }
+};
+
   const addApiEntry = () =>
     setApiEntries(prev => [...prev, { apiMethod: "GET", endPoint: "" }]);
 
@@ -362,8 +395,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                        <td className="px-6 py-4 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {(doc.apis ?? []).length > 0 ? (
-                            <>
-                              {(doc.apis as any[]).slice(0, 3).map((api: any, i: number) => (
+                            <div className="flex items-center justify-center">
+                              {(doc.apis as any[]).slice(0, 1).map((api: any, i: number) => (
                                 <div key={i} className="flex items-center gap-1">
                                   <MethodBadge method={api.apiMethod} />
                                   <span className="text-[10px] text-neutral-400 font-mono truncate max-w-20">
@@ -372,9 +405,9 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                                 </div>
                               ))}
                               {(doc.apis as any[]).length > 3 && (
-                                <span className="text-[10px] text-neutral-400">+{(doc.apis as any[]).length - 3}</span>
+                                <span className="text-[10px] text-neutral-400 m-4">+{(doc.apis as any[]).length - 3}</span>
                               )}
-                            </>
+                            </div>
                           ) : (
                             <span className="text-xs text-neutral-400 italic">{"Pas d'APIs"}</span>
                           )}
@@ -473,8 +506,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => { setShowSlide(false); setEditingDoc(null); }}
-          />
+  onClick={() => attemptClose(() => {
+    setShowSlide(false);
+    setEditingDoc(null);
+    setFormError(null);
+  })}/>
 
           {/* Modal content */}
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10 flex flex-col max-h-[90vh]">
@@ -484,8 +520,13 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 {editingDoc ? "Modifier le document" : "Nouveau document"}
               </h2>
               <button
-                onClick={() => { setShowSlide(false); setEditingDoc(null); setFormError(null); }}
-                className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition"
+  onClick={() => attemptClose(() => {
+    setShowSlide(false);
+    setEditingDoc(null);
+    setFormError(null);
+  })}
+
+className="p-1.5 rounded-lg text-neutral-400 hover:text-neutral-600 hover:bg-neutral-100 transition"
               >
                 <FiX className="w-4 h-4" />
               </button>
@@ -627,7 +668,12 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               )}
               {/* Footer */}
               <div className="flex justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50 shrink-0">
-                <button type="button" onClick={() => { setShowSlide(false); setEditingDoc(null); setFormError(null); }}
+                <button type="button" 
+                  onClick={() => attemptClose(() => {
+    setShowSlide(false);
+    setEditingDoc(null);
+    setFormError(null);
+  })}
                 
                   className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition">
                   Annuler
@@ -769,6 +815,50 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           </div>
         )}
       </Modal>
+  <Modal
+  open={showCloseConfirm}
+  onClose={() => {
+    setShowCloseConfirm(false);
+    setPendingCloseAction(null);
+  }}
+  title="Confirmation"
+  footer={
+    <div className="flex gap-3">
+      <button
+        onClick={() => {
+          setShowCloseConfirm(false);
+          setPendingCloseAction(null);
+        }}
+        className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
+      >
+        Rester
+      </button>
+      <button
+        onClick={() => {
+          if (pendingCloseAction) pendingCloseAction();
+          setShowCloseConfirm(false);
+          setPendingCloseAction(null);
+        }}
+        className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-red-500 text-white hover:bg-red-600 transition"
+      >
+        Quitter sans sauvegarder
+      </button>
+    </div>
+  }
+>
+  <div className="text-center">
+    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+      <FiX className="w-8 h-8 text-amber-500" />
+    </div>
+    <h3 className="text-lg font-semibold text-neutral-900 mb-2">Quitter sans sauvegarder ?</h3>
+    <p className="text-sm text-neutral-500">
+      Vous avez des modifications non enregistrées.
+      <br />
+      Êtes-vous sûr de vouloir quitter ?
+    </p>
+  </div>
+</Modal>
+
     </div>
   );
 }

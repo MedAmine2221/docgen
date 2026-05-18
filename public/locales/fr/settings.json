@@ -15,5 +15,7 @@
   "system": "Système",
   "notifications": "Notifications",
   "enable_all": "Activer toutes les notifications",
-  "enable_all_desc": "Active ou désactive tout d'un coup"
+  "enable_all_desc": "Active ou désactive tout d'un coup",
+  "update": "Modifier"
+
 }

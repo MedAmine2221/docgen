@@ -3,13 +3,15 @@ import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { ForgetPwd } from "@/redux/actions/users/forgetPassword";
 import Image from "next/image";
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export default function ForgetPass() {
-  // const router = useRouter();
+  const router = useRouter();
   const dispatch = useAppDispatch();
   const [email, setEmail] = useState("");
   const [loading , setLoading] = useState(false);
   const [msg, setMsg] = useState("")
+  
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();    
     setLoading(true);
@@ -23,6 +25,10 @@ export default function ForgetPass() {
     }
     await new Promise((r) => setTimeout(r, 1200));
     setLoading(false);
+  };
+
+  const handleBackToLogin = () => {
+    router.push("/login"); // Adjust the path according to your login page route
   };
 
   return (
@@ -58,7 +64,7 @@ export default function ForgetPass() {
 
             {/* Form */}
             <form onSubmit={handleSubmit} className="space-y-5">
-              {/* Username */}
+              {/* Email */}
               <div className="space-y-1.5">
                 <label htmlFor="Email" className="block text-sm font-medium text-neutral-700">
                   Email
@@ -77,6 +83,7 @@ export default function ForgetPass() {
                              transition"
                 />
               </div>
+              
               {/* Submit */}
               <button
                 type="submit"
@@ -95,6 +102,23 @@ export default function ForgetPass() {
                 )}
                 {loading ? "Sending…" : "Send Email"}
               </button>
+
+              {/* Back to Login Button */}
+              <button
+                type="button"
+                onClick={handleBackToLogin}
+                className="w-full py-2.5 rounded-lg border border-neutral-300 bg-white text-neutral-700 
+                           font-semibold text-sm hover:bg-neutral-50 hover:border-neutral-400
+                           active:scale-[0.98] transition-all duration-150
+                           flex items-center justify-center gap-2 mt-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Back to Login
+              </button>
+
+              {/* Messages */}
               {msg == "Aucun compte associé à cet email" ? (
                 <div className="flex items-center gap-2 rounded-lg border border-red-200
                                 bg-red-50 px-4 py-2.5 text-sm text-red-700 mt-5">
@@ -112,8 +136,7 @@ export default function ForgetPass() {
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 shrink-0"
                       fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round"
-                          d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a1 1 0 00.86 1.5h18.64
-                            a1 1 0 00.86-1.5L13.71 3.86a2 2 0 00-3.42 0z" />
+                          d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
                   {msg}
                 </div>

@@ -15,5 +15,6 @@
   "system": "System",
   "notifications": "Notifications",
   "enable_all": "Enable all notifications",
-  "enable_all_desc": "Enable or disable all at once"
+  "enable_all_desc": "Enable or disable all at once",
+  "update": "Update"
 }

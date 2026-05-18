@@ -38,16 +38,16 @@ export default function SettingsPage() {
           <div className="bg-white rounded-xl border border-neutral-100">
             <div className="px-5 py-4 border-b border-neutral-100 flex items-center gap-2">
               <FiUser className="w-4 h-4 text-[#c5262e]" />
-              <h2 className="font-semibold text-neutral-800">Administrateur</h2>
+              <h2 className="font-semibold text-neutral-800">{t("administrator")}</h2>
             </div>
             <div className="p-5">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-medium text-neutral-900">Gérer mon profil</p>
-                  <p className="text-xs text-neutral-400 mt-0.5">Photo, mot de passe et informations personnelles</p>
+                  <p className="text-sm font-medium text-neutral-900">{t("manage_profile")}</p>
+                  <p className="text-xs text-neutral-400 mt-0.5">{t("profile_description")}</p>
                 </div>
                 <button onClick={()=> router.push("/profil")} className="text-xs text-[#c5262e] flex items-center gap-1 font-medium cursor-pointer">
-                  Modifier <FiChevronRight className="w-3 h-3" />
+                  {t("update")} <FiChevronRight className="w-3 h-3" />
                 </button>
               </div>
             </div>
@@ -60,17 +60,6 @@ export default function SettingsPage() {
               <h2 className="font-semibold text-neutral-800">Langue et région</h2>
             </div>
             <div className="p-5 space-y-4">
-              {/* <div>
-                <label className="text-sm font-medium text-neutral-700">{"Langue de l'interface"}</label>
-                <select
-                  value={langue}
-                  onChange={(e) => setLangue(e.target.value)}
-                  className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e]"
-                >
-                  <option value="francais">Français</option>
-                  <option value="english">English</option>
-                </select>
-              </div> */}
               <LanguageSwitcher />
               <div>
                 <label className="text-sm font-medium text-neutral-700">Format de date</label>

@@ -21,7 +21,9 @@ import { getColor, getInitials } from "@/utils/functions";
 export default function UsersPage() {
   const dispatch = useAppDispatch();
   const { users: userList, loading } = useSelector((state: any) => state.users);
-  
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [pendingCloseAction, setPendingCloseAction] = useState<(() => void) | null>(null);
+
   const [saving, setSaving] = useState(false);
   const [editingUser, setEditingUser] = useState<UserType | null>(null);
   const [deletingUser, setDeletingUser] = useState<UserType | null>(null);
@@ -30,6 +32,34 @@ export default function UsersPage() {
   const [showDelete, setShowDelete] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [formError, setFormError] = useState<string | null>(null);
+  const hasUserFormChanges = (form: HTMLFormElement | null) => {
+  if (!form || !showSlide) return false;
+  
+  const formData = new FormData(form);
+  const name = formData.get("name") as string;
+  const email = formData.get("email") as string;
+  const roleId = formData.get("roleId") as string;
+  
+  if (editingUser) {
+    // Mode édition - vérifier si des changements ont été faits
+    const hasNameChanged = name !== editingUser.name;
+    const hasEmailChanged = email !== editingUser.email;
+    const hasRoleChanged = roleId !== editingUser.role?.id?.toString();
+    return hasNameChanged || hasEmailChanged || hasRoleChanged;
+  } else {
+    // Mode ajout - vérifier si des valeurs ont été saisies
+    return !!(name || email);
+  }
+};
+  const attemptClose = (closeAction: () => void) => {
+  const form = document.querySelector('form') as HTMLFormElement;
+  if (hasUserFormChanges(form)) {
+    setPendingCloseAction(() => closeAction);
+    setShowCloseConfirm(true);
+  } else {
+    closeAction();
+  }
+};
   useEffect(() => {
     if (!userList || userList.length === 0) {
       dispatch(fetchUsers());
@@ -276,13 +306,13 @@ export default function UsersPage() {
           {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
-            onClick={() => {
+            onClick={() => attemptClose(() => {
               setShowSlide(false);
               setEditingUser(null);
               setShowPassword(false);
-            }}
+              setFormError(null);
+            })}
           />
-
           {/* Modal content */}
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-md z-10 overflow-hidden">
             {/* Header */}
@@ -291,7 +321,12 @@ export default function UsersPage() {
                 {editingUser ? "Edit User" : "Add New User"}
               </h2>
               <button
-                onClick={() => { setShowSlide(false); setEditingUser(null); setShowPassword(false); setFormError(null); }}
+                onClick={() => attemptClose(() => { 
+                  setShowSlide(false); 
+                  setEditingUser(null); 
+                  setShowPassword(false); 
+                  setFormError(null); 
+                })}
                 className="p-1.5 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition"
               >
                 <FiX className="w-4 h-4" />
@@ -368,7 +403,7 @@ export default function UsersPage() {
               <div className="flex gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50">
                 <button
                   type="button"
-                  onClick={() => setShowSlide(false)}
+                  onClick={() => attemptClose(() => setShowSlide(false))}
                   className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-100 transition-all duration-200"
                 >
                   Cancel
@@ -424,6 +459,49 @@ export default function UsersPage() {
           </p>
         </div>
       </Modal>
+      <Modal
+  open={showCloseConfirm}
+  onClose={() => {
+    setShowCloseConfirm(false);
+    setPendingCloseAction(null);
+  }}
+  title="Confirmation"
+  footer={
+    <div className="flex gap-3">
+      <button
+        onClick={() => {
+          setShowCloseConfirm(false);
+          setPendingCloseAction(null);
+        }}
+        className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-gray-200 text-gray-600 hover:bg-gray-50 transition"
+      >
+        Rester
+      </button>
+      <button
+        onClick={() => {
+          if (pendingCloseAction) pendingCloseAction();
+          setShowCloseConfirm(false);
+          setPendingCloseAction(null);
+        }}
+        className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-red-500 text-white hover:bg-red-600 transition"
+      >
+        Quitter sans sauvegarder
+      </button>
+    </div>
+  }
+>
+  <div className="text-center">
+    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+      <FiX className="w-8 h-8 text-amber-500" />
+    </div>
+    <h3 className="text-lg font-semibold text-gray-900 mb-2">Quitter sans sauvegarder ?</h3>
+    <p className="text-sm text-gray-500">
+      Vous avez des modifications non enregistrées.
+      <br />
+      Êtes-vous sûr de vouloir quitter ?
+    </p>
+  </div>
+</Modal>
     </div>
   );
 }
