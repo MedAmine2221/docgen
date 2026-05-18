@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";;
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { DocType, UserType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
@@ -120,7 +120,23 @@ const openViewDetails = (doc: DocType) => {
   const [apiEntries,    setApiEntries]    = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
   const [editingApiIdx, setEditingApiIdx] = useState<number | null>(null);
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
+const [initialSnapshot, setInitialSnapshot] = useState<string>("");
+const [formValues, setFormValues] = useState<Record<string, string>>({});
+const [hasChanges, setHasChanges] = useState(false);
 
+const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
+  return JSON.stringify({
+    name: doc?.name ?? "",
+    description: doc?.description ?? "",
+    status: doc?.status ?? doc_status[0]?.name,
+    user_creator: String(doc?.user_creator?.id ?? usersList[0]?.id ?? ""),
+    submissionDate: doc?.submissionDate ? doc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16),
+    baseUrl: doc?.baseUrl ?? "",
+    commonHeader: doc?.commonHeader ?? "",
+    bearerToken: doc?.bearerToken ?? "",
+    apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+  });
+};
   const addApiEntry = () =>
     setApiEntries(prev => [...prev, { apiMethod: "GET", endPoint: "" }]);
 
@@ -153,21 +169,25 @@ const openViewDetails = (doc: DocType) => {
     setEditingDoc(null);
     setApiEntries([{ apiMethod: "GET", endPoint: "" }]);
     setEditingApiIdx(null);
+    setInitialSnapshot("");
     setShowSlide(true);
   };
-
-  const openEdit = (doc: DocType) => {
-    setEditingDoc(doc);
-    const existing: ApiEntry[] = (doc?.apis ?? []).map((a: any) => ({
-      id:        a.id,
-      apiMethod: a.apiMethod,
-      endPoint:  a.endPoint,
-    }));
-    const entries = existing.length ? existing : [{ apiMethod: "GET", endPoint: "" }];
-    setApiEntries(entries);
-    setEditingApiIdx(null);
-    setShowSlide(true);
-  };
+// Dans openEdit, après setShowSlide(true) :
+const openEdit = (doc: DocType) => {
+  setEditingDoc(doc);
+  const existing: ApiEntry[] = (doc?.apis ?? []).map((a: any) => ({
+    id: a.id,
+    apiMethod: a.apiMethod,
+    endPoint: a.endPoint,
+  }));
+  const entries = existing.length ? existing : [{ apiMethod: "GET", endPoint: "" }];
+  setApiEntries(entries);
+  setEditingApiIdx(null);
+  const snap = buildSnapshot(doc, entries);
+  setInitialSnapshot(snap);
+  setHasChanges(false); // Désactivé au départ
+  setShowSlide(true);
+};
 
   const filtered = filtredDocList.filter((d: DocType) => {
     const q = search.toLowerCase();
@@ -291,7 +311,37 @@ const openViewDetails = (doc: DocType) => {
       setSaving(false);
     }
   };
-  
+  // Fonction utilitaire pour lire les valeurs du formulaire et détecter les changements
+const checkChanges = (
+  form: HTMLFormElement,
+  currentEntries: ApiEntry[]
+) => {
+  if (!editingDoc) return; // En mode ajout, toujours activé
+  const fd = new FormData(form);
+  const g = (k: string) => fd.get(k) as string ?? "";
+  const currentSnap = JSON.stringify({
+    name: g("name"),
+    description: g("description"),
+    status: g("status"),
+    user_creator: g("user_creator"),
+    submissionDate: g("submissionDate"),
+    baseUrl: g("baseUrl"),
+    commonHeader: g("commonHeader"),
+    bearerToken: g("bearerToken"),
+    apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+  });
+  setHasChanges(currentSnap !== initialSnapshot);
+};
+useEffect(() => {
+  if (!showSlide || !editingDoc) return;
+  // On ne peut pas accéder au form ici directement,
+  // on compare juste la partie APIs
+  const apiSnap = apiEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|");
+  const initialParsed = initialSnapshot ? JSON.parse(initialSnapshot) : null;
+  if (initialParsed && apiSnap !== initialParsed.apis) {
+    setHasChanges(true);
+  }
+}, [apiEntries]);
   return (
     <div className="space-y-4">
 
@@ -408,6 +458,27 @@ const openViewDetails = (doc: DocType) => {
                        </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-0.5">
+                          {profil?.id === doc?.user_creator?.id &&
+                            <>
+                              <button
+                                onClick={() => openEdit(doc)}
+                                className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
+                                          transition opacity-0 group-hover:opacity-100"
+                                          title="Modifier"
+                              >
+                                <IconEdit />
+                              </button>
+                              
+                              <button
+                                onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
+                                className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
+                                          transition opacity-0 group-hover:opacity-100"
+                                          title="Supprimer"
+                              >
+                                <IconDelete />
+                              </button>
+                            </>
+                          }
                           <button
                             onClick={() => openViewDetails(doc)}
                             className="p-1.5 rounded-lg text-[#c5262e]/40 hover:text-[#c5262e] hover:bg-[#c5262e]/5 transition"
@@ -415,51 +486,6 @@ const openViewDetails = (doc: DocType) => {
                           >
                             <FiEye className="w-4 h-4" />
                           </button>
-                          {doc.status?.toLowerCase() === "pending" && (
-                            <>
-                              <button
-                                onClick={() => handleUpdateDoc(doc, "approved")}
-                                disabled={saving}
-                                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
-                                text-green-600 bg-green-50 border border-green-200
-                                hover:bg-green-100 disabled:opacity-50 transition shrink-0"
-                                title="Soumettre pour review"
-                                >
-                                <FcApproval /> Approuvée
-                              </button>
-                              <button
-                                onClick={() => handleUpdateDoc(doc, "Rejected")}
-                                disabled={saving}
-                                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
-                                text-red-600 bg-red-50 border border-red-200
-                                hover:bg-red-100 disabled:opacity-50 transition shrink-0"
-                                title="Soumettre pour review"
-                                >
-                                <BsXOctagon color="red" /> Rejeté
-                              </button>
-                            </>
-                          )}
-                          {profil?.id === doc?.user_creator?.id &&
-                          <>
-                            <button
-                              onClick={() => openEdit(doc)}
-                              className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
-                                        transition opacity-0 group-hover:opacity-100"
-                                        title="Modifier"
-                            >
-                              <IconEdit />
-                            </button>
-                            
-                            <button
-                              onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
-                              className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
-                                        transition opacity-0 group-hover:opacity-100"
-                                        title="Supprimer"
-                            >
-                              <IconDelete />
-                            </button>
-                          </>
-                          }
                         </div>
                        </td>
                     </tr>
@@ -530,7 +556,11 @@ const openViewDetails = (doc: DocType) => {
             </div>
 
             {/* Scrollable body */}
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <form
+  onSubmit={handleSubmit}
+  onChange={(e) => checkChanges(e.currentTarget, apiEntries)}
+  className="flex flex-col flex-1 overflow-hidden"
+>
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
                 <p className="text-base font-semibold text-neutral-400 tracking-wide mb-3 flex items-center gap-1.5">
                   <GoVersions className="w-4 h-4" /> Version {editingDoc?.version}
@@ -705,12 +735,15 @@ const openViewDetails = (doc: DocType) => {
                   className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition">
                   Annuler
                 </button>
-                <button disabled={saving} type="submit"
-                  className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
-                            hover:bg-[#a81e25] disabled:opacity-60 transition flex items-center gap-2">
-                  {saving && <Spinner white />}
-                  {editingDoc ? "Enregistrer" : "Ajouter"}
-                </button>
+                <button
+  disabled={saving || (!!editingDoc && !hasChanges)}
+  type="submit"
+  className={`px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
+    hover:bg-[#a81e25] disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center gap-2`}
+>
+  {saving && <Spinner white />}
+  {editingDoc ? "Enregistrer" : "Ajouter"}
+</button>
               </div>
             </form>
           </div>
@@ -744,115 +777,143 @@ const openViewDetails = (doc: DocType) => {
         </p>
       </Modal>
       {/* Modal de détails */}
-<Modal
-  open={showViewModal}
-  onClose={() => setShowViewModal(false)}
-  title="Détails du document"
-  footer={
-    <button
-      onClick={() => setShowViewModal(false)}
-      className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium hover:bg-[#a81e25] transition"
-    >
-      Fermer
-    </button>
-  }
->
-  {viewingDoc && (
-    <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-      {/* Informations générales */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Informations générales
-        </h3>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Version : {viewingDoc?.version}
-        </h3>
-        <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Nom :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-medium">{viewingDoc.name}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Description :</span>
-            <span className="text-sm text-neutral-600 col-span-2">{viewingDoc.description || "—"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Statut :</span>
-            <div className="col-span-2"><StatusBadge status={viewingDoc.status} /></div>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Auteur :</span>
-            <div className="col-span-2 flex items-center gap-2">
-              <div
-                className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
-                style={{ background: avatarColor(viewingDoc.user_creator?.name ?? "") + "22", color: avatarColor(viewingDoc.user_creator?.name ?? "") }}
-              >
-                {initials(viewingDoc.user_creator?.name)}
+      <Modal
+        open={showViewModal}
+        onClose={() => setShowViewModal(false)}
+        title="Détails du document"
+        footer={
+          <div className="flex items-center justify-between w-full">
+            {/* ✅ Boutons Approuver/Rejeter — seulement si pending */}
+            {viewingDoc?.status?.toLowerCase() === "pending" ? (
+              <div className="flex gap-2">
+                <button
+                  onClick={() => { handleUpdateDoc(viewingDoc, "approved"); setShowViewModal(false); }}
+                  disabled={saving}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                            text-green-600 bg-green-50 border border-green-200
+                            hover:bg-green-100 disabled:opacity-50 transition"
+                >
+                  <FcApproval className="w-4 h-4" /> Approuvée
+                </button>
+                <button
+                  onClick={() => { handleUpdateDoc(viewingDoc, "Rejected"); setShowViewModal(false); }}
+                  disabled={saving}
+                  className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-medium
+                            text-red-600 bg-red-50 border border-red-200
+                            hover:bg-red-100 disabled:opacity-50 transition"
+                >
+                  <BsXOctagon className="w-4 h-4" color="red" /> Rejeté
+                </button>
               </div>
-              <span className="text-sm text-neutral-700">{viewingDoc.user_creator?.name}</span>
+            ) : (
+              <div /> // ✅ spacer pour garder le bouton Fermer à droite
+            )}
+
+            <button
+              onClick={() => setShowViewModal(false)}
+              className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium hover:bg-[#a81e25] transition"
+            >
+              Fermer
+            </button>
+          </div>
+        }
+      >
+        {viewingDoc && (
+          <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
+            {/* Informations générales */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Informations générales
+              </h3>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Version : {viewingDoc?.version}
+              </h3>
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Nom :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-medium">{viewingDoc.name}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Description :</span>
+                  <span className="text-sm text-neutral-600 col-span-2">{viewingDoc.description || "—"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Statut :</span>
+                  <div className="col-span-2"><StatusBadge status={viewingDoc.status} /></div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Auteur :</span>
+                  <div className="col-span-2 flex items-center gap-2">
+                    <div
+                      className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
+                      style={{ background: avatarColor(viewingDoc.user_creator?.name ?? "") + "22", color: avatarColor(viewingDoc.user_creator?.name ?? "") }}
+                    >
+                      {initials(viewingDoc.user_creator?.name)}
+                    </div>
+                    <span className="text-sm text-neutral-700">{viewingDoc.user_creator?.name}</span>
+                  </div>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Date de soumission :</span>
+                  <span className="text-sm text-neutral-700 col-span-2">{formatDate(viewingDoc.submissionDate)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Configuration API */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Configuration API
+              </h3>
+              <div className="space-y-2">
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Base URL :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.baseUrl || "—"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Common Header :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.commonHeader || "—"}</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  <span className="text-xs text-neutral-400">Bearer Token :</span>
+                  <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">
+                    {viewingDoc.bearerToken ? viewingDoc.bearerToken.substring(0, 30) + "..." : "—"}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Endpoints */}
+            <div>
+              <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
+                Endpoints ({viewingDoc.apis?.length || 0})
+              </h3>
+              <div className="space-y-2">
+                {(viewingDoc.apis ?? []).length > 0 ? (
+                  <table className="w-full text-sm">
+                    <thead>
+                      <tr className="border-b border-neutral-100">
+                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">Méthode</th>
+                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">Endpoint</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {(viewingDoc.apis as any[]).map((api, idx) => (
+                        <tr key={idx} className="border-b border-neutral-50 last:border-0">
+                          <td className="py-2"><MethodBadge method={api.apiMethod} /></td>
+                          <td className="py-2"><span className="text-xs font-mono text-neutral-600 break-all">{api.endPoint}</span></td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-sm text-neutral-400 italic text-center py-4">Aucun endpoint configuré</p>
+                )}
+              </div>
             </div>
           </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Date de soumission :</span>
-            <span className="text-sm text-neutral-700 col-span-2">{formatDate(viewingDoc.submissionDate)}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Configuration API */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Configuration API
-        </h3>
-        <div className="space-y-2">
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Base URL :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.baseUrl || "—"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Common Header :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.commonHeader || "—"}</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <span className="text-xs text-neutral-400">Bearer Token :</span>
-            <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">
-              {viewingDoc.bearerToken ? viewingDoc.bearerToken.substring(0, 30) + "..." : "—"}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Endpoints */}
-      <div>
-        <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-          Endpoints ({viewingDoc.apis?.length || 0})
-        </h3>
-        <div className="space-y-2">
-          {(viewingDoc.apis ?? []).length > 0 ? (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b border-neutral-100">
-                  <th className="text-left py-2 text-xs text-neutral-400 font-medium">Méthode</th>
-                  <th className="text-left py-2 text-xs text-neutral-400 font-medium">Endpoint</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(viewingDoc.apis as any[]).map((api, idx) => (
-                  <tr key={idx} className="border-b border-neutral-50 last:border-0">
-                    <td className="py-2"><MethodBadge method={api.apiMethod} /></td>
-                    <td className="py-2"><span className="text-xs font-mono text-neutral-600 break-all">{api.endPoint}</span></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          ) : (
-            <p className="text-sm text-neutral-400 italic text-center py-4">Aucun endpoint configuré</p>
-          )}
-        </div>
-      </div>
-    </div>
-  )}
-</Modal>
+        )}
+      </Modal>
     </div>
   );
 }

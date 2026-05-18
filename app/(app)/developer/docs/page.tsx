@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";;
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
 import { DocType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
@@ -110,11 +110,22 @@ const openViewDetails = (doc: DocType) => {
   const [filterStatus,  setFilterStatus]  = useState("all");
   const [page,          setPage]          = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
-
+const [initialSnapshot, setInitialSnapshot] = useState<string>("");
+const [hasChanges, setHasChanges] = useState(false);
   const [apiEntries,    setApiEntries]    = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
   const [editingApiIdx, setEditingApiIdx] = useState<number | null>(null);
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
-
+const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
+  return JSON.stringify({
+    name: doc?.name ?? "",
+    description: doc?.description ?? "",
+    submissionDate: doc?.submissionDate ? doc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16),
+    baseUrl: doc?.baseUrl ?? "",
+    commonHeader: doc?.commonHeader ?? "",
+    bearerToken: doc?.bearerToken ?? "",
+    apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+  });
+};
   const addApiEntry = () =>
     setApiEntries(prev => [...prev, { apiMethod: "GET", endPoint: "" }]);
 
@@ -143,26 +154,59 @@ const openViewDetails = (doc: DocType) => {
 
   const cancelEditApi = () => setEditingApiIdx(null);
 
-  const openAdd = () => {
-    setEditingDoc(null);
-    setApiEntries([{ apiMethod: "GET", endPoint: "" }]);
-    setEditingApiIdx(null);
-    setShowSlide(true);
-  };
+const openAdd = () => {
+  setEditingDoc(null);
+  setApiEntries([{ apiMethod: "GET", endPoint: "" }]);
+  setEditingApiIdx(null);
+  setInitialSnapshot("");
+  setHasChanges(false);
+  setShowSlide(true);
+};
 
-  const openEdit = (doc: DocType) => {
-    setEditingDoc(doc);
-    const existing: ApiEntry[] = (doc?.apis ?? []).map((a: any) => ({
-      id:        a.id,
-      apiMethod: a.apiMethod,
-      endPoint:  a.endPoint,
-    }));
-    const entries = existing.length ? existing : [{ apiMethod: "GET", endPoint: "" }];
-    setApiEntries(entries);
-    setEditingApiIdx(null);
-    setShowSlide(true);
-  };
-
+const openEdit = (doc: DocType) => {
+  setEditingDoc(doc);
+  const existing: ApiEntry[] = (doc?.apis ?? []).map((a: any) => ({
+    id: a.id,
+    apiMethod: a.apiMethod,
+    endPoint: a.endPoint,
+  }));
+  const entries = existing.length ? existing : [{ apiMethod: "GET", endPoint: "" }];
+  setApiEntries(entries);
+  setEditingApiIdx(null);
+  const snap = buildSnapshot(doc, entries);
+  setInitialSnapshot(snap);
+  setHasChanges(false);
+  setShowSlide(true);
+};
+const checkChanges = (form: HTMLFormElement, currentEntries: ApiEntry[]) => {
+  if (!editingDoc) return;
+  const fd = new FormData(form);
+  const g = (k: string) => (fd.get(k) as string) ?? "";
+  const currentSnap = JSON.stringify({
+    name: g("name"),
+    description: g("description"),
+    submissionDate: g("submissionDate"),
+    baseUrl: g("baseUrl"),
+    commonHeader: g("commonHeader"),
+    bearerToken: g("bearerToken"),
+    apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+  });
+  setHasChanges(currentSnap !== initialSnapshot);
+};
+useEffect(() => {
+  if (!showSlide || !editingDoc) return;
+  const apiSnap = apiEntries
+    .filter(a => !a._markedForDelete)
+    .map(a => `${a.apiMethod}:${a.endPoint}`)
+    .join("|");
+  const initialParsed = initialSnapshot ? JSON.parse(initialSnapshot) : null;
+  if (initialParsed && apiSnap !== initialParsed.apis) {
+    setHasChanges(true);
+  } else if (initialParsed && apiSnap === initialParsed.apis) {
+    // Re-check form fields too — reset only if needed
+    setHasChanges(false);
+  }
+}, [apiEntries]);
   const filtered = me?.docs?.filter((d: DocType) => {
     const q = search.toLowerCase();
     const match =
@@ -502,7 +546,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             </div>
 
             {/* Scrollable body + Footer */}
-            <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+              <form
+                onSubmit={handleSubmit}
+                onChange={(e) => checkChanges(e.currentTarget, apiEntries)}
+                className="flex flex-col flex-1 overflow-hidden"
+              >
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
                 <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
                   <FiFileText className="w-3.5 h-3.5" /> Informations générales
@@ -638,9 +686,12 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition">
                   Annuler
                 </button>
-                <button disabled={saving} type="submit"
+                <button
+                  disabled={saving || (!!editingDoc && !hasChanges)}
+                  type="submit"
                   className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
-                            hover:bg-[#a81e25] disabled:opacity-60 transition flex items-center gap-2">
+                    hover:bg-[#a81e25] disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center gap-2"
+                >
                   {saving && <Spinner white />}
                   {editingDoc ? "Enregistrer" : "Ajouter"}
                 </button>
