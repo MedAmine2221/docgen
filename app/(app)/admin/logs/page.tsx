@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";;
+import { PAGE_SIZE } from "@/constant";
+import { formatDate, formatDateTime } from "@/utils/functions";
 import { useCallback, useEffect, useState, useMemo } from "react";
 import {
   FiSearch,
@@ -33,26 +35,6 @@ type LogEntry = {
     email: string;
   };
 };
-
-/* ── helpers ──────────────────────────────────────────────────────── */
-const formatDate = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  });
-
-const formatDateTime = (d: string) =>
-  new Date(d).toLocaleString("fr-FR", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-    second: "2-digit",
-  });
-
-const PAGE_SIZE = 5;
 
 const ACTION_CONFIG: Record<
   string,

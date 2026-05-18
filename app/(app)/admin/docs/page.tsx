@@ -9,7 +9,7 @@ import { Modal } from "@/components/ConfirmModal";
 import { IconPlus } from "@/components/icons/IconPlus";
 import { IconEdit } from "@/components/icons/IconEdit";
 import { IconDelete } from "@/components/icons/IconDelete";
-import { doc_status } from "@/constant";
+import { doc_status, HTTP_METHODS, PAGE_SIZE } from "@/constant";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
 import { RootState } from "@/redux/store";
 import { addDoc } from "@/redux/actions/docs/addDocs";
@@ -22,16 +22,13 @@ import {
 import { FcApproval } from "react-icons/fc";
 import { BsXOctagon } from "react-icons/bs";
 import { GoVersions } from "react-icons/go";
+import MethodBadge from "@/components/MethodBadge";
+import StatusBadge from "@/components/StatusBadge";
+import { formatDate, getInitials } from "@/utils/functions";
 
 /* ── helpers ──────────────────────────────────────────────────────── */
 const PALETTE = ["#c5262e","#2563eb","#16a34a","#d97706","#7c3aed","#0891b2","#db2777"];
 const avatarColor = (name = "") => PALETTE[name.charCodeAt(0) % PALETTE.length];
-const initials    = (name = "") => name.split(" ").map(w => w[0]).slice(0,2).join("").toUpperCase();
-const formatDate  = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric" });
-
-const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
-
 export interface ApiEntry {
   id?: number;
   apiMethod: string;
@@ -39,59 +36,11 @@ export interface ApiEntry {
   _markedForDelete?: boolean;
 }
 
-function StatusBadge({ status }: { status: string }) {
-  const s = status?.toLowerCase();
-  const isApproved = s === "approve" || s === "approved";
-  const isPending  = s === "pending";
-  if (isApproved)
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M8.5 2.5 4 7.5 1.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        APPROVED
-      </span>
-    );
-  if (isPending)
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M5 3v2.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-        PENDING
-      </span>
-    );
-  return (
-    <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600 border border-red-200">
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path d="M2.5 2.5 7.5 7.5M7.5 2.5 2.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-      REJECTED
-    </span>
-  );
-}
-
-function MethodBadge({ method }: { method: string }) {
-  const map: Record<string,string> = {
-    GET:    "bg-blue-50 text-blue-700 border-blue-100",
-    POST:   "bg-green-50 text-green-700 border-green-100",
-    PUT:    "bg-amber-50 text-amber-700 border-amber-100",
-    PATCH:  "bg-purple-50 text-purple-700 border-purple-100",
-    DELETE: "bg-red-50 text-red-600 border-red-100",
-  };
-  return (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border font-mono ${map[method?.toUpperCase()] ?? "bg-neutral-100 text-neutral-500 border-neutral-200"}`}>
-      {method}
-    </span>
-  );
-}
 
 const inputCls = `w-full px-3 py-2 text-sm rounded-xl border bg-neutral-50 text-neutral-900
   placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
   focus:border-[#c5262e] transition border-neutral-200`;
 const labelCls = "block text-xs font-medium text-neutral-500 mb-1";
-const PAGE_SIZE = 5;
 
 /* ── component ────────────────────────────────────────────────────── */
 export default function Docs() {
@@ -120,9 +69,8 @@ const openViewDetails = (doc: DocType) => {
   const [apiEntries,    setApiEntries]    = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
   const [editingApiIdx, setEditingApiIdx] = useState<number | null>(null);
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
-const [initialSnapshot, setInitialSnapshot] = useState<string>("");
-const [formValues, setFormValues] = useState<Record<string, string>>({});
-const [hasChanges, setHasChanges] = useState(false);
+  const [initialSnapshot, setInitialSnapshot] = useState<string>("");
+  const [hasChanges, setHasChanges] = useState(false);
 
 const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
   return JSON.stringify({
@@ -424,7 +372,7 @@ useEffect(() => {
                             className="w-7 h-7 rounded-full flex items-center justify-center text-[11px] font-bold shrink-0"
                             style={{ background: color + "22", color }}
                           >
-                            {initials(doc.user_creator?.name)}
+                            {getInitials(doc.user_creator?.name)}
                           </div>
                           <span className="text-sm text-neutral-600 whitespace-nowrap">{doc.user_creator?.name}</span>
                         </div>
@@ -736,14 +684,14 @@ useEffect(() => {
                   Annuler
                 </button>
                 <button
-  disabled={saving || (!!editingDoc && !hasChanges)}
-  type="submit"
-  className={`px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
-    hover:bg-[#a81e25] disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center gap-2`}
->
-  {saving && <Spinner white />}
-  {editingDoc ? "Enregistrer" : "Ajouter"}
-</button>
+                  disabled={saving || (!!editingDoc && !hasChanges)}
+                  type="submit"
+                  className={`px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium
+                    hover:bg-[#a81e25] disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center gap-2`}
+                >
+                  {saving && <Spinner white />}
+                  {editingDoc ? "Enregistrer" : "Ajouter"}
+                </button>
               </div>
             </form>
           </div>
@@ -848,7 +796,7 @@ useEffect(() => {
                       className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold"
                       style={{ background: avatarColor(viewingDoc.user_creator?.name ?? "") + "22", color: avatarColor(viewingDoc.user_creator?.name ?? "") }}
                     >
-                      {initials(viewingDoc.user_creator?.name)}
+                      {getInitials(viewingDoc.user_creator?.name)}
                     </div>
                     <span className="text-sm text-neutral-700">{viewingDoc.user_creator?.name}</span>
                   </div>

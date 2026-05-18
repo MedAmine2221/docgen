@@ -21,3 +21,17 @@ export const handleLogout = (setSaving: any, router: any) => {
     setSaving(false)
   }
 };
+
+
+export const formatDate  = (d: string) =>
+  new Date(d).toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric" });
+
+export const formatDateTime = (d: string) =>
+  new Date(d).toLocaleString("fr-FR", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });

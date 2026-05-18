@@ -18,12 +18,10 @@ import {
   FiChevronLeft, FiChevronRight, FiPlus, FiTrash2, FiCheck, FiX,
   FiSend,
 } from "react-icons/fi";
-
-/* ── helpers ──────────────────────────────────────────────────────── */
-const formatDate  = (d: string) =>
-  new Date(d).toLocaleDateString("fr-FR", { day:"2-digit", month:"2-digit", year:"numeric" });
-
-const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+import MethodBadge from "@/components/MethodBadge";
+import StatusBadge from "@/components/StatusBadge";
+import { HTTP_METHODS, PAGE_SIZE } from "@/constant";
+import { formatDate } from "@/utils/functions";
 
 export interface ApiEntry {
   id?: number;
@@ -31,64 +29,12 @@ export interface ApiEntry {
   endPoint: string;
   _markedForDelete?: boolean;
 }
-function StatusBadge({ status }: any) {
-  const s = status?.toLowerCase();
-  const isApproved = s === "approve" || s === "approved";
-  const isPending  = s === "pending";
-  const isDraft    = s === "draft" || s === "Draft" ;
-  if (isApproved) return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-green-50 text-green-700 border border-green-200">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M8.5 2.5 4 7.5 1.5 5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-        </svg>
-        APPROVED
-      </span>
-  );
-  if (isPending)  return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <circle cx="5" cy="5" r="3.5" stroke="currentColor" strokeWidth="1.5"/>
-          <path d="M5 3v2.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-        PENDING
-      </span>
-  );
-  if (isDraft)
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-slate-50 text-slate-600 border border-slate-200">
-        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-          <path d="M2 2h6M2 5h4M2 8h5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        </svg>
-        DRAFT
-      </span>
-    );
-  return ( <span className="inline-flex items-center gap-1.5 text-xs font-semibold px-3 py-1 rounded-full bg-red-50 text-red-600 border border-red-200">
-      <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
-        <path d="M2.5 2.5 7.5 7.5M7.5 2.5 2.5 7.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      </svg>
-      REJECTED
-    </span> );
-}
-function MethodBadge({ method }: { method: string }) {
-  const map: Record<string,string> = {
-    GET:    "bg-blue-50 text-blue-700 border-blue-100",
-    POST:   "bg-green-50 text-green-700 border-green-100",
-    PUT:    "bg-amber-50 text-amber-700 border-amber-100",
-    PATCH:  "bg-purple-50 text-purple-700 border-purple-100",
-    DELETE: "bg-red-50 text-red-600 border-red-100",
-  };
-  return (
-    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-md border font-mono ${map[method?.toUpperCase()] ?? "bg-neutral-100 text-neutral-500 border-neutral-200"}`}>
-      {method}
-    </span>
-  );
-}
+
 
 const inputCls = `w-full px-3 py-2 text-sm rounded-xl border bg-neutral-50 text-neutral-900
   placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
   focus:border-[#c5262e] transition border-neutral-200`;
 const labelCls = "block text-xs font-medium text-neutral-500 mb-1";
-const PAGE_SIZE = 5;
 
 /* ── component ────────────────────────────────────────────────────── */
 export default function Docs() {

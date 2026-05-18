@@ -12,12 +12,11 @@ import { Modal } from "@/components/ConfirmModal";
 import { IconEdit } from "@/components/icons/IconEdit";
 import { IconDelete } from "@/components/icons/IconDelete";
 import { IconPlus } from "@/components/icons/IconPlus";
-import { AVATAR_COLORS, roles } from "@/constant";
+import { roles } from "@/constant";
 import { FiEye, FiEyeOff, FiSearch, FiX, FiUser, FiShield, FiTrash2 } from "react-icons/fi";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { getColor, getInitials } from "@/utils/functions";
 
-const getInitials = (n: string) => n.split(" ").map(w => w[0]).slice(0, 2).join("").toUpperCase();
-const getColor = (n: string) => AVATAR_COLORS[n.charCodeAt(0) % AVATAR_COLORS.length];
 
 export default function UsersPage() {
   const dispatch = useAppDispatch();

@@ -83,3 +83,7 @@ const NAV_BOTTOM = [
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 
 export {NAV_ITEMS_Dev, TODAY, MONTHS, API_METHOD, doc_status, AVATAR_COLORS, roles, NAV_ITEMS, NAV_BOTTOM}
+
+export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
+
+export const PAGE_SIZE = 5;
