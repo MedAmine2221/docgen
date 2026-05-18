@@ -518,7 +518,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 <div>
                   <label className={labelCls}>Date de soumission</label>
                   <input name="submissionDate" type="datetime-local"
-                    defaultValue={editingDoc?.submissionDate ? editingDoc.submissionDate.slice(0, 16) : ""}
+                    defaultValue={editingDoc?.submissionDate ? editingDoc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16)}
                     className={inputCls} />
                 </div>
 
