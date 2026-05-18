@@ -91,7 +91,7 @@ const inputCls = `w-full px-3 py-2 text-sm rounded-xl border bg-neutral-50 text-
   placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
   focus:border-[#c5262e] transition border-neutral-200`;
 const labelCls = "block text-xs font-medium text-neutral-500 mb-1";
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 5;
 
 /* ── component ────────────────────────────────────────────────────── */
 export default function Docs() {

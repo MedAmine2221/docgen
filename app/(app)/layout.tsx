@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+"use client";;
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
-import { IconLogout } from "@/components/icons/IconLogout";
 import { NAV_BOTTOM, NAV_ITEMS, NAV_ITEMS_Dev } from "@/constant";
 import { RootState } from "@/redux/store";
 import { getInitials, handleLogout } from "@/utils/functions";
@@ -14,6 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   const router   = useRouter();
   const pathname = usePathname();
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
+  const [openProfileMenu, setOpenProfileMenu] = useState(false);
   const [saving, setSaving] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
   const me = useSelector((state: RootState) => state.profil.profil);
@@ -82,19 +82,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           ))}
         </nav>
 
-        {/* Logout */}
-        <div className="p-2 border-t border-neutral-100">
-          <button
-            onClick={() => setShowConfirmLogout(true)}
-            title="Déconnexion"
-            className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm text-red-400
-                       hover:bg-red-50 hover:text-red-600 transition-colors text-left
-                       ${collapsed ? "justify-center" : ""}`}
-          >
-            <IconLogout />
-            {!collapsed && "Déconnexion"}
-          </button>
-        </div>
       </aside>
 
       {/* ── Main ─────────────────────────────────────────────────── */}
@@ -126,15 +113,41 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <path d="M8 1a5 5 0 00-5 5v2.586l-.854.853A.5.5 0 002.5 10.5h11a.5.5 0 00.354-.854L13 8.793V6a5 5 0 00-5-5zM6.5 13.5a1.5 1.5 0 003 0h-3z" fill="currentColor"/>
               </svg>
             </button>
+            <div className="relative">
+              <button
+                onClick={() => setOpenProfileMenu((prev) => !prev)}
+                className="cursor-pointer w-8 h-8 rounded-full bg-[#c5262e]/10 flex items-center justify-center
+                          text-xs font-semibold text-[#c5262e] hover:bg-[#c5262e]/20 transition-colors"
+                title="Mon profil"
+              >
+                {getInitials(profil?.name ?? "")}
+              </button>
+              {openProfileMenu && (
+                <div
+                  className="absolute right-0 mt-2 w-44 bg-white border border-neutral-200 rounded-xl shadow-lg py-1 z-50"
+                >
+                  <button
+                    onClick={() => {
+                      setOpenProfileMenu(false);
+                      router.push("/profil");
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition"
+                  >
+                    Mon profil
+                  </button>
 
-            <button
-              onClick={() => router.push("/profil")}
-              className="cursor-pointer w-8 h-8 rounded-full bg-[#c5262e]/10 flex items-center justify-center
-                         text-xs font-semibold text-[#c5262e] hover:bg-[#c5262e]/20 transition-colors"
-              title="Mon profil"
-            >
-              {getInitials(profil?.name ?? "")}
-            </button>
+                  <button
+                    onClick={() => {
+                      setOpenProfileMenu(false);
+                      setShowConfirmLogout(true);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
+                  >
+                    Déconnexion
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 

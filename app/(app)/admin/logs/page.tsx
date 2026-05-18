@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-"use client";
+"use client";;
 import { useCallback, useEffect, useState, useMemo } from "react";
-import { useSelector } from "react-redux";
 import {
   FiSearch,
   FiEye,
@@ -53,7 +52,7 @@ const formatDateTime = (d: string) =>
     second: "2-digit",
   });
 
-const PAGE_SIZE = 8;
+const PAGE_SIZE = 5;
 
 const ACTION_CONFIG: Record<
   string,
