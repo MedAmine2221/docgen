@@ -1,12 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import { FiBell, FiChevronRight, FiGlobe, FiMonitor, FiMoon, FiSun, FiUser } from "react-icons/fi";
 
 export default function SettingsPage() {
   const router =  useRouter();
-  const [langue, setLangue] = useState("francais");
+  const { t } = useTranslation('settings');
+  const { t: tCommon } = useTranslation('common');
   const [dateFormat, setDateFormat] = useState("JJ/MM/AAAA");
   const [timezone, setTimezone] = useState("UTC+1");
   const [theme, setTheme] = useState("clair");
@@ -18,19 +21,15 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-5">
-      {/* En-tête comme sur dashboard */}
       <div className="relative overflow-hidden rounded-2xl bg-[#c5262e] px-8 py-6 flex items-center justify-between">
-        <div className="absolute -right-10 -top-14 w-52 h-52 rounded-full bg-white/5" />
-        <div className="absolute right-16 top-8 w-32 h-32 rounded-full bg-white/5" />
         <div className="relative z-10">
-          <h1 className="text-2xl font-semibold text-white">Paramètres plateforme</h1>
-          <p className="text-sm text-white/70 mt-1">Personnalisez votre expérience sur Amail</p>
+          <h1 className="text-2xl font-semibold text-white">{t('title')}</h1>
+          <p className="text-sm text-white/70 mt-1">{t('subtitle')}</p>
         </div>
         <span className="relative z-10 text-xs font-mono text-white/60 bg-white/10 px-3 py-2 rounded-lg">
-          Administrateur
+          {t('admin_badge')}
         </span>
       </div>
-
       <div>
 
         {/* Contenu principal */}
@@ -61,7 +60,7 @@ export default function SettingsPage() {
               <h2 className="font-semibold text-neutral-800">Langue et région</h2>
             </div>
             <div className="p-5 space-y-4">
-              <div>
+              {/* <div>
                 <label className="text-sm font-medium text-neutral-700">{"Langue de l'interface"}</label>
                 <select
                   value={langue}
@@ -71,7 +70,8 @@ export default function SettingsPage() {
                   <option value="francais">Français</option>
                   <option value="english">English</option>
                 </select>
-              </div>
+              </div> */}
+              <LanguageSwitcher />
               <div>
                 <label className="text-sm font-medium text-neutral-700">Format de date</label>
                 <select

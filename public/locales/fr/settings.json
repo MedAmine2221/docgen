@@ -1,0 +1,19 @@
+{
+  "title": "Paramètres plateforme",
+  "subtitle": "Personnalisez votre expérience sur Amail",
+  "administrator": "Administrateur",
+  "admin_badge": "Administrateur",
+  "manage_profile": "Gérer mon profil",
+  "profile_description": "Photo, mot de passe et informations personnelles",
+  "language_region": "Langue et région",
+  "interface_language": "Langue de l'interface",
+  "date_format": "Format de date",
+  "timezone": "Fuseau horaire",
+  "appearance": "Apparence",
+  "light": "Clair",
+  "dark": "Sombre",
+  "system": "Système",
+  "notifications": "Notifications",
+  "enable_all": "Activer toutes les notifications",
+  "enable_all_desc": "Active ou désactive tout d'un coup"
+}

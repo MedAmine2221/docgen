@@ -1,0 +1,10 @@
+{
+  "save": "Sauvegarder",
+  "cancel": "Annuler",
+  "edit": "Modifier",
+  "delete": "Supprimer",
+  "search": "Rechercher",
+  "loading": "Chargement...",
+  "error": "Une erreur est survenue",
+  "success": "Opération réussie"
+}
