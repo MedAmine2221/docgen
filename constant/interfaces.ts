@@ -33,6 +33,7 @@ interface DocType {
   commonHeader: string,
   bearerToken: string ,
   user_creator: UserType,
+  version?: string,
   apis: any
 }
 

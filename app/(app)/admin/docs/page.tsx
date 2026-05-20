@@ -111,18 +111,36 @@ const openViewDetails = (doc: DocType) => {
   const [initialSnapshot, setInitialSnapshot] = useState<string>("");
   const [hasChanges, setHasChanges] = useState(false);
 
+// Modifiez buildSnapshot pour inclure cause
 const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
   return JSON.stringify({
     name: doc?.name ?? "",
     description: doc?.description ?? "",
-    status: doc?.status ?? doc_status[0]?.name,
-    user_creator: String(doc?.user_creator?.id ?? usersList[0]?.id ?? ""),
     submissionDate: doc?.submissionDate ? doc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16),
     baseUrl: doc?.baseUrl ?? "",
     commonHeader: doc?.commonHeader ?? "",
     bearerToken: doc?.bearerToken ?? "",
+    cause: "", // Pas de cause initiale
     apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
   });
+};
+
+// Modifiez checkChanges pour inclure cause
+const checkChanges = (form: HTMLFormElement, currentEntries: ApiEntry[]) => {
+  if (!editingDoc) return;
+  const fd = new FormData(form);
+  const g = (k: string) => (fd.get(k) as string) ?? "";
+  const currentSnap = JSON.stringify({
+    name: g("name"),
+    description: g("description"),
+    submissionDate: g("submissionDate"),
+    baseUrl: g("baseUrl"),
+    commonHeader: g("commonHeader"),
+    bearerToken: g("bearerToken"),
+    cause: g("cause"), // ✅ Inclure la cause
+    apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+  });
+  setHasChanges(currentSnap !== initialSnapshot);
 };
   const addApiEntry = () =>
     setApiEntries(prev => [...prev, { apiMethod: "GET", endPoint: "" }]);
@@ -289,36 +307,41 @@ const openEdit = (doc: DocType) => {
 
   const visibleEntries = apiEntries.map((e, i) => ({ ...e, _idx: i })).filter(e => !e._markedForDelete);
   const handleUpdateDoc = async (doc: DocType, status: string) => {
-    setSaving(true);
-    try {
-      await dispatch(updateDoc({ id: String(doc.id), docData: { status } })).unwrap();
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSaving(false);
-    }
-  };
-  // Fonction utilitaire pour lire les valeurs du formulaire et détecter les changements
-const checkChanges = (
-  form: HTMLFormElement,
-  currentEntries: ApiEntry[]
-) => {
-  if (!editingDoc) return; // En mode ajout, toujours activé
-  const fd = new FormData(form);
-  const g = (k: string) => fd.get(k) as string ?? "";
-  const currentSnap = JSON.stringify({
-    name: g("name"),
-    description: g("description"),
-    status: g("status"),
-    user_creator: g("user_creator"),
-    submissionDate: g("submissionDate"),
-    baseUrl: g("baseUrl"),
-    commonHeader: g("commonHeader"),
-    bearerToken: g("bearerToken"),
-    apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
-  });
-  setHasChanges(currentSnap !== initialSnapshot);
+  setSaving(true);
+  try {
+    // ✅ Solution : envoyer toutes les données existantes + le nouveau status
+    await dispatch(updateDoc({ 
+      id: String(doc.id), 
+      docData: { 
+        name: doc.name,
+        description: doc.description,
+        submissionDate: doc.submissionDate,
+        baseUrl: doc.baseUrl,
+        commonHeader: doc.commonHeader,
+        bearerToken: doc.bearerToken,
+        user_creator: doc.user_creator,
+        status: status,
+        // Important : inclure les APIs existantes
+        apisToUpdate: doc.apis?.filter(api => api.id).map(api => ({
+          id: api.id,
+          apiMethod: api.apiMethod,
+          endPoint: api.endPoint
+        })) || [],
+        apisToAdd: doc.apis?.filter(api => !api.id).map(api => ({
+          apiMethod: api.apiMethod,
+          endPoint: api.endPoint
+        })) || [],
+        apisToDelete: []
+      } 
+    })).unwrap();
+  } catch (err) {
+    console.error(err);
+  } finally {
+    setSaving(false);
+  }
 };
+  // Fonction utilitaire pour lire les valeurs du formulaire et détecter les changements
+
 useEffect(() => {
   if (!showSlide || !editingDoc) return;
   // On ne peut pas accéder au form ici directement,
@@ -419,7 +442,7 @@ useEffect(() => {
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={doc.status} />
                        </td>
-                       <td className="px-6 py-4 hidden lg:table-cell">
+                       {/* <td className="px-6 py-4 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {(doc.apis ?? []).length > 0 ? (
                             <div className="flex items-center justify-center">
@@ -439,7 +462,31 @@ useEffect(() => {
                             <span className="text-xs text-neutral-400 italic">Pas d&apos;APIs</span>
                           )}
                         </div>
-                      </td>
+                      </td> */}
+<td className="px-6 py-4 hidden lg:table-cell">
+  <div className="flex flex-wrap gap-1">
+    {(doc.apis ?? []).length > 0 ? (
+      <div className="flex items-center gap-1">
+        {/* Afficher la première API */}
+        <div className="flex items-center gap-1">
+          <MethodBadge method={(doc.apis as any[])[0]?.apiMethod} />
+          <span className="text-[10px] text-neutral-400 font-mono truncate max-w-28">
+            {(doc.apis as any[])[0]?.endPoint}
+          </span>
+        </div>
+        
+        {/* Afficher le nombre d'APIs restantes */}
+        {(doc.apis as any[]).length > 1 && (
+          <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full ml-1">
+            +{(doc.apis as any[]).length - 1}
+          </span>
+        )}
+      </div>
+    ) : (
+      <span className="text-xs text-neutral-400 italic">Pas d'APIs</span>
+    )}
+  </div>
+</td>
                       <td className="px-6 py-4 hidden xl:table-cell">
                         <span className="text-xs text-neutral-400">{formatDate(doc.submissionDate)}</span>
                        </td>
@@ -553,14 +600,14 @@ useEffect(() => {
 
             {/* Scrollable body */}
               <form
-  onSubmit={handleSubmit}
-  onChange={(e) => checkChanges(e.currentTarget, apiEntries)}
-  className="flex flex-col flex-1 overflow-hidden"
->
+                onSubmit={handleSubmit}
+                onChange={(e) => checkChanges(e.currentTarget, apiEntries)}
+                className="flex flex-col flex-1 overflow-hidden"
+              >
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                <p className="text-base font-semibold text-neutral-400 tracking-wide mb-3 flex items-center gap-1.5">
+                {editingDoc && <p className="text-base font-semibold text-neutral-400 tracking-wide mb-3 flex items-center gap-1.5">
                   <GoVersions className="w-4 h-4" /> Version {editingDoc?.version}
-                </p>
+                </p>}
                 <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                   <FiFileText className="w-3.5 h-3.5" /> Informations générales
                 </p>

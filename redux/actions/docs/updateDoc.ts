@@ -1,34 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { createAsyncThunk } from "@reduxjs/toolkit";
 
-const incrementVersion = (
-  currentVersion: string,
-  type: "bug" | "endpoint" | "major"
-): string => {
-  let [major, minor, patch] = currentVersion
-    .split(".")
-    .map(Number);
-
-  switch (type) {
-    case "bug":
-      patch += 1;
-      break;
-
-    case "endpoint":
-      minor += 1;
-      patch = 0;
-      break;
-
-    case "major":
-      major += 1;
-      minor = 0;
-      patch = 0;
-      break;
-  }
-
-  return `${major}.${minor}.${patch}`;
-};
-
 export const updateDoc = createAsyncThunk(
   "docs/updateDoc",
   async (
@@ -82,42 +54,6 @@ export const updateDoc = createAsyncThunk(
         throw new Error("Failed to fetch current document");
       }
 
-      const currentDoc = await currentDocResponse.json();
-
-      // =========================================================
-      // 2️⃣ calcul de la nouvelle version
-      // =========================================================
-
-      let newVersion = currentDoc.version || "1.0.0";
-
-      // BUG => patch
-      if (docData?.cause === "Bug") {
-        newVersion = incrementVersion(currentDoc.version, "bug");
-      }
-
-      // nouveau endpoint => minor
-      else if (
-        docData?.apisToAdd &&
-        docData.apisToAdd.length > 0
-      ) {
-        newVersion = incrementVersion(
-          currentDoc.version,
-          "endpoint"
-        );
-      }
-
-      // changement majeur => major
-      else {
-        newVersion = incrementVersion(
-          currentDoc.version,
-          "major"
-        );
-      }
-
-      // =========================================================
-      // 3️⃣ update document principal
-      // =========================================================
-
       const docResponse = await fetch(
         `http://localhost:3001/docs/${id}`,
         {
@@ -135,7 +71,6 @@ export const updateDoc = createAsyncThunk(
               docData.user_creator?.id ||
               docData.user_creator,
             cause: docData?.cause,
-            version: newVersion,
           }),
         }
       );
@@ -218,8 +153,6 @@ export const updateDoc = createAsyncThunk(
 
       const finalDoc = {
         ...updatedDoc,
-        version: newVersion,
-
         apis: [
           ...(docData.apisToUpdate ?? []).map(
             (api: any) => ({
