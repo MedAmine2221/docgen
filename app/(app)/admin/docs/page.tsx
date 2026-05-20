@@ -25,7 +25,9 @@ import { GoVersions } from "react-icons/go";
 import MethodBadge from "@/components/MethodBadge";
 import StatusBadge from "@/components/StatusBadge";
 import { formatDate, getInitials } from "@/utils/functions";
-
+// 1. Import en haut du fichier
+import { useNotifications } from "@/hooks/useNotif";
+import { getMe } from "@/redux/actions/auth/login";
 /* ── helpers ──────────────────────────────────────────────────────── */
 const PALETTE = ["#c5262e","#2563eb","#16a34a","#d97706","#7c3aed","#0891b2","#db2777"];
 const avatarColor = (name = "") => PALETTE[name.charCodeAt(0) % PALETTE.length];
@@ -69,6 +71,13 @@ const hasDocFormChanges = () => {
     return !!(name || description || baseUrl || hasAnyApi);
   }
 };
+// 2. Rafraîchir le profil (qui contient les docs) à chaque événement doc
+useNotifications(
+  () => {
+    dispatch(getMe()); // rechargera me?.docs automatiquement
+  },
+  ['doc:created', 'doc:updated', 'doc:deleted']
+);
 const attemptClose = (closeAction: () => void) => {
   if (hasDocFormChanges()) {
     setPendingCloseAction(() => closeAction);

@@ -1,10 +1,10 @@
-"use client";;
+"use client";
 import { useAppDispatch } from '@/hooks/useAppDispatch';
 import { getMe } from '@/redux/actions/auth/login';
 import { fetchDocs } from '@/redux/actions/docs/getDocs';
 import { fetchUsers } from '@/redux/actions/users/getUsers';
 import { RootState } from '@/redux/store';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useSelector } from 'react-redux';
 
 export default function RefetchDataProviders({
@@ -16,27 +16,44 @@ export default function RefetchDataProviders({
   const usersList = useSelector((state: RootState) => state.users.users);
   const me = useSelector((state: RootState) => state.profil.profil);
   
-  const dispatch = useAppDispatch()
+  const dispatch = useAppDispatch();
+  const [isTokenReady, setIsTokenReady] = useState(false);
+
+  // Check if token exists before fetching
   useEffect(() => {
-    if (!docsList || docsList.length === 0) {
+    const checkToken = () => {
+      const token = localStorage.getItem("token");
+      setIsTokenReady(!!token);
+    };
+    
+    checkToken();
+    window.addEventListener("tokenChange", checkToken);
+    window.addEventListener("storage", checkToken);
+    
+    return () => {
+      window.removeEventListener("tokenChange", checkToken);
+      window.removeEventListener("storage", checkToken);
+    };
+  }, []);
+
+  // Only fetch when token is ready AND data is missing
+  useEffect(() => {
+    if (isTokenReady && (!docsList || docsList.length === 0)) {
       dispatch(fetchDocs());
     }
-  }, [dispatch, docsList]);
+  }, [dispatch, docsList, isTokenReady]);
 
   useEffect(() => {
-    if (!me) {
+    if (isTokenReady && !me) {
       dispatch(getMe());
     }
-  }, [dispatch, me]);
-
+  }, [dispatch, me, isTokenReady]);
 
   useEffect(() => {
-    if (!usersList || usersList.length === 0) {
+    if (isTokenReady && (!usersList || usersList.length === 0)) {
       dispatch(fetchUsers());
     }
-  }, [dispatch, usersList]);
-  return(
-    <>
-      {children}
-    </>
-)}
+  }, [dispatch, usersList, isTokenReady]);
+
+  return <>{children}</>;
+}

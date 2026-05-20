@@ -22,6 +22,8 @@ import MethodBadge from "@/components/MethodBadge";
 import StatusBadge from "@/components/StatusBadge";
 import { HTTP_METHODS, PAGE_SIZE } from "@/constant";
 import { formatDate } from "@/utils/functions";
+import { useNotifications } from "@/hooks/useNotif";
+import { getMe } from "@/redux/actions/auth/login";
 
 export interface ApiEntry {
   id?: number;
@@ -75,6 +77,12 @@ const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
     apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
   });
 };
+useNotifications(
+  () => {
+    dispatch(getMe()); // rechargera me?.docs automatiquement
+  },
+  ['doc:created', 'doc:updated', 'doc:deleted']
+);
 const hasDocFormChanges = () => {
   if (!showSlide) return false;
   

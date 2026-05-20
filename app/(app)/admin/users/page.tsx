@@ -71,55 +71,62 @@ export default function UsersPage() {
     u.email.toLowerCase().includes(searchTerm.toLowerCase())
   ) || [];
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setSaving(true);
+const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setSaving(true);
 
-    const formData = new FormData(e.currentTarget);
-    const name   = (formData.get("name") as string).trim();
-    const email  = (formData.get("email") as string).trim();
-    const roleId = formData.get("roleId") as string;
+  const formData = new FormData(e.currentTarget);
+  const name   = (formData.get("name") as string).trim();
+  const email  = (formData.get("email") as string).trim();
+  const roleId = formData.get("roleId") as string;
 
-    // ── Validation ──────────────────────────────────────────────────
-    if (!name || !email) {
-      setFormError("Veuillez remplir tous les champs obligatoires.");
+  // ── Validation ──────────────────────────────────────────────────
+  if (!name || !email) {
+    setFormError("Veuillez remplir tous les champs obligatoires.");
+    setSaving(false);
+    return;
+  }
+  if (!editingUser) {
+    const password = (formData.get("password") as string).trim();
+    if (!password) {
+      setFormError("Le mot de passe est obligatoire.");
       setSaving(false);
       return;
     }
-    if (!editingUser) {
-      const password = (formData.get("password") as string).trim();
-      if (!password) {
-        setFormError("Le mot de passe est obligatoire.");
-        setSaving(false);
-        return;
-      }
-    }
-    setFormError(null);
+  }
+  setFormError(null);
+  
   try {
-      if (editingUser) {
-        await dispatch(updateUser({
-          id: editingUser.id,
-          userData: { name, email, role_id: roleId }
-        })).unwrap();
-      } else {
-        const password = (formData.get("password") as string).trim();
-
-        await dispatch(
-          addUser({ name, email, password, role_id: roleId })
-        ).unwrap();
-      }
-
-      setShowSlide(false);
-      setEditingUser(null);
-      setFormError(null);
-
-    } catch (error: any) {
-      console.error("Operation failed:", error);
-      setFormError(error);
-    } finally {
-      setSaving(false);
+    if (editingUser) {
+      // ✅ CORRECTED: Only send the data that needs to be updated
+      await dispatch(updateUser({
+        id: editingUser.id,
+        userData: { 
+          name, 
+          email, 
+          role_id: roleId
+          // Remove targetUserEmail - it's not needed
+        }
+      })).unwrap();
+    } else {
+      const password = (formData.get("password") as string).trim();
+      await dispatch(
+        addUser({ name, email, password, role_id: roleId })
+      ).unwrap();
     }
-  };
+
+    setShowSlide(false);
+    setEditingUser(null);
+    setFormError(null);
+
+  } catch (error: any) {
+    console.error("Operation failed:", error);
+    // Better error handling to show specific error message
+    setFormError(error?.message || "Une erreur est survenue lors de l'opération");
+  } finally {
+    setSaving(false);
+  }
+};
   const openAdd = () => {
     setEditingUser(null);
     setShowSlide(true);

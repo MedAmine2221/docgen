@@ -2,6 +2,7 @@
 "use client";;
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
+import { NotificationBell } from "@/components/NotificationsBell";
 import { NAV_BOTTOM, NAV_ITEMS, NAV_ITEMS_Dev } from "@/constant";
 import { RootState } from "@/redux/store";
 import { getInitials, handleLogout } from "@/utils/functions";
@@ -107,12 +108,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
           <div className="flex items-center gap-2">
             {/* Notification bell placeholder */}
-            <button className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400
-                               hover:bg-neutral-100 hover:text-neutral-700 transition-colors">
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                <path d="M8 1a5 5 0 00-5 5v2.586l-.854.853A.5.5 0 002.5 10.5h11a.5.5 0 00.354-.854L13 8.793V6a5 5 0 00-5-5zM6.5 13.5a1.5 1.5 0 003 0h-3z" fill="currentColor"/>
-              </svg>
-            </button>
+            <NotificationBell />
             <div className="relative">
               <button
                 onClick={() => setOpenProfileMenu((prev) => !prev)}
