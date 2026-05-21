@@ -1,79 +1,80 @@
 "use client";
-import { useRouter, usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useSelector } from "react-redux";
+import { RootState } from "@/redux/store";
 
-const PUBLIC_ROUTES = ["/auth/login", "/home"];
-
-function getTokenPayload(): { role?: { name_eng: string } } | null {
-  try {
-    const token = localStorage.getItem("token");
-    if (!token) return null;
-    const payload = token.split(".")[1];
-    return JSON.parse(atob(payload));
-  } catch {
-    return null;
-  }
-}
-
-export default function AuthGuard({ children }: { children: React.ReactNode }) {
+export default function AuthGuard({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const router = useRouter();
   const pathname = usePathname();
-  const [ready, setReady] = useState(false);
+  const profil = useSelector(
+    (state: RootState) => state.profil.profil
+  );
+
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const check = async() => {
-      const token = localStorage.getItem("token");
-      const isPublic = PUBLIC_ROUTES.some(r => pathname.startsWith(r));
+    // ✅ Autoriser les pages auth
+    if (pathname.startsWith("/auth")) {
+      setIsLoading(false);
+      return;
+    }
 
-      if (!token && !isPublic && !["/contact-admin", "/auth/forget-pass"].some(route => pathname.startsWith(route))) {
-        router.replace("/auth/login");
-        return;
-      }
+    const token = localStorage.getItem("token");
 
-      if (token && isPublic) {
-        const payload = getTokenPayload();
-        const role = payload?.role?.name_eng?.toUpperCase();
+    // ✅ Pas connecté
+    if (!token) {
+      router.replace("/auth/login");
+      return;
+    }
 
-        if (role === "ADMIN") {
+    // ✅ Gestion des rôles
+    if (profil) {
+      const role = profil.role?.name_eng?.toLowerCase();
+
+      if (
+        pathname.startsWith("/admin") &&
+        role !== "admin"
+      ) {
+        router.replace(
+          role === "developer"
+            ? "/developer"
+            : "/client"
+        );
+      } else if (
+        pathname.startsWith("/developer") &&
+        role !== "developer" &&
+        role !== "admin"
+      ) {
+        router.replace("/client");
+      } else if (
+        pathname.startsWith("/client") &&
+        role === "admin"
+      ) {
+        router.replace("/admin");
+      } else if (pathname === "/") {
+        if (role === "admin")
           router.replace("/admin");
-        } else {
+        else if (role === "developer")
           router.replace("/developer");
-        }
-        return;
+        else router.replace("/client");
       }
+    }
 
-      // ✅ Token présent sur une route protégée → vérifier l'accès
-      if (token) {
-        const payload = getTokenPayload();
-        const role = payload?.role?.name_eng?.toUpperCase();
+    setIsLoading(false);
+  }, [profil, pathname, router]);
 
-        const isAdminRoute = pathname.startsWith("/admin");
-        const isDevRoute = pathname.startsWith("/developer");
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[#c5262e]" />
+      </div>
+    );
+  }
 
-        if (role === "ADMIN" && isDevRoute) {
-          router.replace("/admin");
-          return;
-        }
-
-        if (role !== "ADMIN" && isAdminRoute) {
-          router.replace("/developer");
-          return;
-        }
-      }
-
-      setReady(true);
-    };
-
-    check();
-
-    window.addEventListener("tokenChange", check);
-    window.addEventListener("storage", check);
-    return () => {
-      window.removeEventListener("tokenChange", check);
-      window.removeEventListener("storage", check);
-    };
-  }, [pathname, router]);
-
-  if (!ready) return null;
   return <>{children}</>;
 }

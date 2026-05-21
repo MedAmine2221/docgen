@@ -3,7 +3,7 @@
 import { Spinner } from "@/components/AppSpinner";
 import { Modal } from "@/components/ConfirmModal";
 import { NotificationBell } from "@/components/NotificationsBell";
-import { NAV_BOTTOM, NAV_ITEMS, NAV_ITEMS_Dev } from "@/constant";
+import { NAV_BOTTOM, NAV_CLIENT_ITEMS, NAV_ITEMS, NAV_ITEMS_Dev } from "@/constant";
 import { RootState } from "@/redux/store";
 import { getInitials, handleLogout } from "@/utils/functions";
 import { useRouter, usePathname } from "next/navigation";
@@ -54,7 +54,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               Principal
             </p>
           )}
-          {(me?.role?.name_eng === "ADMIN"? NAV_ITEMS : NAV_ITEMS_Dev).map(
+          {(me?.role?.name_eng === "ADMIN"? NAV_ITEMS : me?.role?.name_eng === "CLIENT"? NAV_CLIENT_ITEMS : NAV_ITEMS_Dev).map(
             (item) =>
               item.disabled && (
                 <NavButton
@@ -102,7 +102,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               </svg>
             </button>
             <span className="text-sm font-medium text-neutral-900">
-              {(me?.role?.name_eng === "ADMIN"? [...NAV_ITEMS, ...NAV_BOTTOM]: [...NAV_ITEMS_Dev, ...NAV_BOTTOM]).find((i) => isActive(i.path))?.label ?? "Dashboard"}
+              {(me?.role?.name_eng === "ADMIN"? [...NAV_ITEMS, ...NAV_BOTTOM]: me?.role?.name_eng === "CLIENT"? [...NAV_CLIENT_ITEMS, ...NAV_BOTTOM] :  [...NAV_ITEMS_Dev, ...NAV_BOTTOM]).find((i) => isActive(i.path))?.label ?? "Dashboard"}
             </span>
           </div>
 

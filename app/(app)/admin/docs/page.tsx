@@ -90,6 +90,9 @@ const attemptClose = (closeAction: () => void) => {
     return docsList.filter((item: any)=> item.status.toLowerCase() !== "draft")
   },[docsList])
   const usersList = useSelector((state: RootState) => state.users.users) ?? [];
+  const listeClient = useMemo(()=>{
+    return usersList.filter((item)=> item.role.name_fr === "CLIENT")
+  },[usersList])
 const [viewingDoc, setViewingDoc] = useState<DocType | null>(null);
 const [showViewModal, setShowViewModal] = useState(false);
 const openViewDetails = (doc: DocType) => {
@@ -110,7 +113,6 @@ const openViewDetails = (doc: DocType) => {
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
   const [initialSnapshot, setInitialSnapshot] = useState<string>("");
   const [hasChanges, setHasChanges] = useState(false);
-
 // Modifiez buildSnapshot pour inclure cause
 const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
   return JSON.stringify({
@@ -120,7 +122,6 @@ const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
     baseUrl: doc?.baseUrl ?? "",
     commonHeader: doc?.commonHeader ?? "",
     bearerToken: doc?.bearerToken ?? "",
-    cause: "", // Pas de cause initiale
     apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
   });
 };
@@ -137,7 +138,6 @@ const checkChanges = (form: HTMLFormElement, currentEntries: ApiEntry[]) => {
     baseUrl: g("baseUrl"),
     commonHeader: g("commonHeader"),
     bearerToken: g("bearerToken"),
-    cause: g("cause"), // ✅ Inclure la cause
     apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
   });
   setHasChanges(currentSnap !== initialSnapshot);
@@ -275,6 +275,8 @@ const openEdit = (doc: DocType) => {
         apisToUpdate,
         apisToDelete,
         cause: g("cause") ?? null,
+          assignedTo: g("assignedTo"), // ✅ ajouter cette ligne
+
       };
 
       if (editingDoc) {
@@ -611,6 +613,26 @@ useEffect(() => {
                 <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
                   <FiFileText className="w-3.5 h-3.5" /> Informations générales
                 </p>
+                <div>
+                  <label className={labelCls}>Client assigné</label>
+                  <select 
+                    name="assignedTo" 
+                    required
+                    className={inputCls}
+                    defaultValue=""
+                    disabled={!!editingDoc}
+                  >
+                    <option value="" disabled>Sélectionner un client</option>
+                    {listeClient.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.name} ({client.email})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    Ce client pourra consulter la documentation
+                  </p>
+                </div>
                 {editingDoc && 
                   <div>
                     <label className={labelCls}>Cause de modification</label>

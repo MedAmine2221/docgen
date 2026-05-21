@@ -2,7 +2,7 @@ import { IconApi } from "@/components/icons/IconApi";
 import { IconDocs } from "@/components/icons/IconDocs";
 import { IconSettings } from "@/components/icons/IconSettings";
 import { IconUsers } from "@/components/icons/IconUsers";
-import { FiHome } from "react-icons/fi";
+import { FiFileText, FiHome, FiSettings } from "react-icons/fi";
 import { SiLogseq } from "react-icons/si";
 const TODAY = new Date().toLocaleDateString("fr-FR", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
@@ -20,6 +20,11 @@ const roles = [
     id : 2,
     name_eng : "DEVELOPER",
     name_fr : "DÉVELOPPEUR"
+  },
+  {
+    id : 3,
+    name_eng : "CLIENT",
+    name_fr : "CLIENT"
   }
 ] 
 
@@ -75,6 +80,11 @@ const NAV_ITEMS_Dev = [
   { label: "Gérer les docs",  path: "/developer/docs",     icon: <IconDocs />, disabled: true  },
   { label: "Gérer Votre Profil",  path: "/profil",     icon: <IconApi />, disabled: false  },
 
+];
+export const NAV_CLIENT_ITEMS = [
+  { path: "/client", label: "Dashboard", icon: <FiHome className="w-4 h-4" />, disabled: true },
+  // { path: "/client/docs", label: "Mes documents", icon: <FiFileText className="w-4 h-4" />, disabled: true },
+  { path: "/profil", label: "Mon profil", icon: <FiSettings className="w-4 h-4" />, disabled: true },
 ];
 
 const NAV_BOTTOM = [

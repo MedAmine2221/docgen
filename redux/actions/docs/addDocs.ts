@@ -30,7 +30,9 @@ export const addDoc = createAsyncThunk(
           commonHeader: docData.commonHeader,
           bearerToken: docData.bearerToken,
           user_creator: docData.user_creator?.id || docData.user_creator,
-          version: "1.0.0"
+          version: "1.0.0",
+          assignedTo: docData.assignedTo, // ✅ Ajout du client assigné
+
         }),
       });
 

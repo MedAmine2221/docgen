@@ -272,11 +272,18 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                         <span className="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
                         {u.role?.name_fr}
                       </span>
+                      : u.role?.name_fr === "CLIENT" ? 
+                      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-default text-black/60">
+                        <span className="w-1.5 h-1.5 bg-black/60 rounded-full"></span>
+                        {u.role?.name_fr}
+                      </span> 
                       :
                       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium bg-red-50 text-red-700">
                         <span className="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
                         {u.role?.name_fr}
-                      </span>}
+                      </span> 
+                      
+                      }
                     </td>
                     <td className="px-6 py-4">
                       <span className="font-semibold text-gray-700">{u.docs?.length || 0}</span>
@@ -394,7 +401,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   >
                     {roles?.map((r: any) => (
                       <option key={r.id} value={String(r.id)}>
-                        {r.name_eng === "ADMIN" ? "Administrator" : "Developer"}
+                        {r.name_eng === "ADMIN" ? "Administrator" : r.name_eng === "CLIENT" ?  "Client" :  "Developer"}
                       </option>
                     ))}
                   </select>

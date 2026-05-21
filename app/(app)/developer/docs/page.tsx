@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";;
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useSelector } from "react-redux";
 import { DocType } from "@/constant/interfaces";
 import { Spinner } from "@/components/AppSpinner";
@@ -67,6 +69,10 @@ const [hasChanges, setHasChanges] = useState(false);
   const [apiEntries,    setApiEntries]    = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
   const [editingApiIdx, setEditingApiIdx] = useState<number | null>(null);
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
+  const usersList = useSelector((state: RootState) => state.users.users) ?? [];
+  const listeClient = useMemo(()=>{
+    return usersList.filter((item)=> item.role.name_fr === "CLIENT")
+  },[usersList])
 const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
   return JSON.stringify({
     name: doc?.name ?? "",
@@ -288,6 +294,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           bearerToken: docPayload.bearerToken,
           user_creator: docPayload.user_creator,
           apis: apisToAdd,
+          assignedTo: g("assignedTo"), // ✅ ajouter cette ligne
       })).unwrap();
       }
       setShowSlide(false);
@@ -329,12 +336,12 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         user_creator: doc.user_creator,
         status: "pending",
         // Important : inclure les APIs existantes
-        apisToUpdate: doc.apis?.filter(api => api.id).map(api => ({
+        apisToUpdate: doc.apis?.filter((api: any) => api.id).map((api: any) => ({
           id: api.id,
           apiMethod: api.apiMethod,
           endPoint: api.endPoint
         })) || [],
-        apisToAdd: doc.apis?.filter(api => !api.id).map(api => ({
+        apisToAdd: doc.apis?.filter((api: any) => !api.id).map((api: any) => ({
           apiMethod: api.apiMethod,
           endPoint: api.endPoint
         })) || [],
@@ -604,6 +611,26 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
                   <FiFileText className="w-3.5 h-3.5" /> Informations générales
                 </p>
+                <div>
+                  <label className={labelCls}>Client assigné</label>
+                  <select 
+                    name="assignedTo" 
+                    required
+                    className={inputCls}
+                    defaultValue=""
+                    disabled={!!editingDoc}
+                  >
+                    <option value="" disabled>Sélectionner un client</option>
+                    {listeClient.map((client) => (
+                      <option key={client.id} value={client.id}>
+                        {client.name} ({client.email})
+                      </option>
+                    ))}
+                  </select>
+                  <p className="text-xs text-neutral-400 mt-1">
+                    Ce client pourra consulter la documentation
+                  </p>
+                </div>
                 {editingDoc && 
                   <div>
                     <label className={labelCls}>Cause de modification</label>

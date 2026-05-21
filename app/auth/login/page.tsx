@@ -74,6 +74,8 @@ export default function Login() {
         router.replace("/admin");
       } else if (tokenDecoded?.role?.id === 2) {
         router.replace("/developer");
+      } else if (tokenDecoded?.role?.id === 3) {
+        router.replace("/client");
       } else {
         router.replace("/dashboard");
       }
