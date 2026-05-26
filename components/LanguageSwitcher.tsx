@@ -27,7 +27,7 @@ export default function LanguageSwitcher() {
       </label>
       <select
         value={currentLang}
-        onChange={(e) => changeLanguage(e.target.value)}  // ← Correction ici
+        onChange={(e) => changeLanguage(e.target.value)}
         className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-[#c5262e]/30 focus:border-[#c5262e]"
       >
         <option value="fr">Français</option>

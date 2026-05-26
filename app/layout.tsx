@@ -29,11 +29,6 @@ export default function RootLayout({
           <AuthGuard>
             <RefetchDataProviders>
               <I18nProvider>
-                {/*
-                  AppWithSocket remplace l'ancien <SocketProvider> + <NotificationToast />.
-                  Il lit le profil depuis Redux (Client Component) et passe
-                  userEmail + isAdmin au SocketProvider pour rejoindre les rooms.
-                */}
                 <AppWithSocket>{children}</AppWithSocket>
               </I18nProvider>
             </RefetchDataProviders>

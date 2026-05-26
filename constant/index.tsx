@@ -4,12 +4,13 @@ import { IconSettings } from "@/components/icons/IconSettings";
 import { IconUsers } from "@/components/icons/IconUsers";
 import { FiFileText, FiHome, FiSettings } from "react-icons/fi";
 import { SiLogseq } from "react-icons/si";
+
 const TODAY = new Date().toLocaleDateString("fr-FR", {
     weekday: "long", year: "numeric", month: "long", day: "numeric",
 });
 
-
 const AVATAR_COLORS = ["#c5262e", "#185FA5", "#0F6E56", "#854F0B", "#534AB7"];
+
 const roles = [
   {
     id : 1,
@@ -66,33 +67,45 @@ const API_METHOD = [
   }
 ] 
 
+// Clés de traduction pour les éléments de navigation
+// Les labels sont maintenant des clés i18n
 const NAV_ITEMS = [
-  { label: "Page d'acceuil Admin", path: "/admin/dashboard",    icon: <FiHome />, disabled: true },
-  { label: "Gérer les utilisateur", path: "/admin/users",    icon: <IconUsers />, disabled: true },
-  { label: "Gérer les Documents",  path: "/admin/docs",     icon: <IconDocs />, disabled: true  },
-  { label: "Historique",  path: "/admin/logs",     icon: <SiLogseq />, disabled: true  },
-  { label: "Gérer Votre Profil",  path: "/profil",     icon: <IconApi />, disabled: false  },
-
+  { labelKey: "nav.admin_dashboard", path: "/admin/dashboard", icon: <FiHome />, disabled: true },
+  { labelKey: "nav.users_management", path: "/admin/users", icon: <IconUsers />, disabled: true },
+  { labelKey: "nav.documents_management", path: "/admin/docs", icon: <IconDocs />, disabled: true },
+  { labelKey: "nav.history", path: "/admin/logs", icon: <SiLogseq />, disabled: true },
+  { labelKey: "nav.profile", path: "/profil", icon: <IconApi />, disabled: false },
 ];
 
 const NAV_ITEMS_Dev = [
-  { label: "Developer Dashboard", path: "/developer/dashboard",    icon: <FiHome />, disabled: true },
-  { label: "Gérer les docs",  path: "/developer/docs",     icon: <IconDocs />, disabled: true  },
-  { label: "Gérer Votre Profil",  path: "/profil",     icon: <IconApi />, disabled: false  },
-
+  { labelKey: "nav.dev_dashboard", path: "/developer/dashboard", icon: <FiHome />, disabled: true },
+  { labelKey: "nav.manage_docs", path: "/developer/docs", icon: <IconDocs />, disabled: true },
+  { labelKey: "nav.profile", path: "/profil", icon: <IconApi />, disabled: false },
 ];
-export const NAV_CLIENT_ITEMS = [
-  { path: "/client", label: "Dashboard", icon: <FiHome className="w-4 h-4" />, disabled: true },
-  // { path: "/client/docs", label: "Mes documents", icon: <FiFileText className="w-4 h-4" />, disabled: true },
-  { path: "/profil", label: "Mon profil", icon: <FiSettings className="w-4 h-4" />, disabled: true },
+
+const NAV_CLIENT_ITEMS = [
+  { labelKey: "nav.client_dashboard", path: "/client", icon: <FiHome className="w-4 h-4" />, disabled: true },
+  { labelKey: "nav.my_profile", path: "/profil", icon: <FiSettings className="w-4 h-4" />, disabled: true },
 ];
 
 const NAV_BOTTOM = [
-  { label: "Paramètres", path: "/settings", icon: <IconSettings /> },
+  { labelKey: "nav.settings", path: "/settings", icon: <IconSettings />, disabled: true },
 ];
+
 const MONTHS = ["Jan", "Fév", "Mar", "Avr", "Mai", "Jun", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"];
 
-export {NAV_ITEMS_Dev, TODAY, MONTHS, API_METHOD, doc_status, AVATAR_COLORS, roles, NAV_ITEMS, NAV_BOTTOM}
+export { 
+  NAV_ITEMS_Dev, 
+  TODAY, 
+  MONTHS, 
+  API_METHOD, 
+  doc_status, 
+  AVATAR_COLORS, 
+  roles, 
+  NAV_ITEMS, 
+  NAV_BOTTOM,
+  NAV_CLIENT_ITEMS
+}
 
 export const HTTP_METHODS = ["GET", "POST", "PUT", "PATCH", "DELETE"];
 

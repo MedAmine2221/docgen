@@ -18,10 +18,6 @@ interface UserType {
   role: Role;
 }
 
-// interface CommonHeaderType {
-//   "Content-Type" : string
-// }
-
 interface DocType {
   id?: number;
   name: string,

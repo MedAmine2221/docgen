@@ -13,10 +13,14 @@ import IconClock from "@/components/icons/IconClock";
 import { IconX } from "@/components/icons/IconX";
 import { LegendDot } from "@/components/LegendDot";
 import KpiCard from "@/components/KpiCard";
+import { useTranslation } from "react-i18next";
+import i18n from "@/utils/i18n";
 
 Chart.register(...registerables);
 
 export default function DashboardPage() {
+  const { t } = useTranslation('dashboard');
+  
   const users = useSelector((state: RootState) => state.users.users);  
   const docs = useSelector((state: RootState) => state.docs.docs).filter((item: any) => item.status.toLowerCase() !== "draft");
   const MAX_DOCS = useMemo(()=>{
@@ -36,6 +40,7 @@ export default function DashboardPage() {
 
   const textColor = "rgba(115,115,115,0.9)";
   const gridColor = "rgba(0,0,0,0.06)";
+  
   function getMonthlyStats(docs: any[]) {
     const submissions = Array(12).fill(0);
     const approved = Array(12).fill(0);
@@ -54,10 +59,11 @@ export default function DashboardPage() {
     return { submissions, approved };
   }
   const { submissions, approved } = getMonthlyStats(docs);
+  
   useChart(donutRef, () => ({
     type: "doughnut",
     data: {
-      labels: ["Approuvés", "En attente", "Rejetés"],
+      labels: [t('approuved'), t('inProgress'), t('rejected')],
       datasets: [{
         data: [docsStats?.docsApproved.length, docsStats?.docsPending.length, docsStats?.docsRejected.length],
         backgroundColor: ["#16a34a", "#d97706", "#dc2626"],
@@ -71,7 +77,7 @@ export default function DashboardPage() {
       cutout: "68%",
       plugins: {
         legend: { display: false },
-        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw} docs` } },
+        tooltip: { callbacks: { label: (c) => ` ${c.label}: ${c.raw} ${t('documents')}` } },
       },
     },
   }));
@@ -85,7 +91,7 @@ export default function DashboardPage() {
         return parts[0] + " " + parts[1][0] + ".";
       }),  
       datasets: [{
-        label: "Documents",
+        label: t('documents'),
         data: users.map((d) => d.docs?.length),
         backgroundColor: ["#c5262e", "#e05a60", "#ea868a", "#f2b3b5"],
         borderRadius: 6,
@@ -102,13 +108,14 @@ export default function DashboardPage() {
       },
     },
   }));
+  
   useChart(lineRef, () => ({
     type: "line",
     data: {
       labels: MONTHS,
       datasets: [
         {
-          label: "Soumissions",
+          label: t('soumissions'),
           data: submissions,
           borderColor: "#c5262e",
           backgroundColor: "rgba(197,38,46,0.08)",
@@ -119,7 +126,7 @@ export default function DashboardPage() {
           pointBackgroundColor: "#c5262e",
         },
         {
-          label: "Approuvés",
+          label: t('approuved'),
           data: approved,
           borderColor: "#16a34a",
           backgroundColor: "transparent",
@@ -142,7 +149,8 @@ export default function DashboardPage() {
       },
     },
   }));
-
+console.log('Traduction headTitle:', t('headTitle'));
+console.log('Langue actuelle:', i18n.language);
 
   return (
     <div className="space-y-5">
@@ -152,8 +160,8 @@ export default function DashboardPage() {
         <div className="absolute -right-10 -top-14 w-52 h-52 rounded-full bg-white/5" />
         <div className="absolute right-16 top-8 w-32 h-32 rounded-full bg-white/5" />
         <div className="relative z-10">
-          <h1 className="text-2xl font-semibold text-white">Tableau de bord Administrateur</h1>
-          <p className="text-sm text-white/70 mt-1">{"Suivez l'activité de votre plateforme en temps réel"}</p>
+          <h1 className="text-2xl font-semibold text-white">{t('headTitle')}</h1>
+          <p className="text-sm text-white/70 mt-1">{t('headDesc')}</p>
         </div>
         <span className="relative z-10 text-xs font-mono text-white/60 bg-white/10 px-3 py-2 rounded-lg capitalize">
           {TODAY}
@@ -163,35 +171,35 @@ export default function DashboardPage() {
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <KpiCard
-          label="Total documents"
+          label={t('totalDoc')}
           value={docsStats?.total}
-          sub="Tous statuts confondus"
+          sub={t('totalDocDesc')}
           iconColor="text-[#c5262e]"
           iconBg="bg-[#c5262e]/10"
           icon={<IconDoc />}
         />
         <KpiCard
-          label="Approuvés"
+          label={t('approuved')}
           value={docsStats?.docsApproved.length}
-          sub={`${Math.round((docsStats?.docsApproved.length / docsStats?.total) * 100)}% du total`}
+          sub={`${Math.round((docsStats?.docsApproved.length / docsStats?.total) * 100)}% ${t('du')} ${t('total')}`}
           valueColor="text-green-600"
           iconColor="text-green-600"
           iconBg="bg-green-50"
           icon={<IconCheck />}
         />
         <KpiCard
-          label="En attente"
+          label={t('inProgress')}
           value={docsStats?.docsPending.length}
-          sub={`${Math.round((docsStats?.docsPending.length / docsStats?.total) * 100)}% du total`}
+          sub={`${Math.round((docsStats?.docsPending.length / docsStats?.total) * 100)}% ${t('du')} ${t('total')}`}
           valueColor="text-amber-600"
           iconColor="text-amber-600"
           iconBg="bg-amber-50"
           icon={<IconClock />}
         />
         <KpiCard
-          label="Rejetés"
+          label={t('rejected')}
           value={docsStats?.docsRejected.length}
-          sub={`${Math.round((docsStats?.docsRejected.length / docsStats?.total) * 100)}% du total`}
+          sub={`${Math.round((docsStats?.docsRejected.length / docsStats?.total) * 100)}% ${t('du')} ${t('total')}`}
           valueColor="text-red-600"
           iconColor="text-red-600"
           iconBg="bg-red-50"
@@ -204,12 +212,14 @@ export default function DashboardPage() {
 
         {/* Donut */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
-          <p className="text-sm font-medium text-neutral-800">Répartition des documents</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Par statut — {docsStats?.total} documents au total</p>
+          <p className="text-sm font-medium text-neutral-800">{t('graphUnTitle')}</p>
+          <p className="text-xs text-neutral-400 mt-0.5 mb-4">
+            {t('par')} {t('statut')} — {docsStats?.total} {t('documents')} {t('au')} {t('total')}
+          </p>
           <div className="flex gap-3 mb-3 flex-wrap">
-            <LegendDot color="#16a34a" label={`Approuvés ${Math.round((docsStats?.docsApproved.length / docsStats?.total) * 100)}%`} />
-            <LegendDot color="#d97706" label={`En attente ${Math.round((docsStats?.docsPending.length / docsStats?.total) * 100)}%`} />
-            <LegendDot color="#dc2626" label={`Rejetés ${Math.round((docsStats?.docsRejected.length / docsStats?.total) * 100)}%`} />
+            <LegendDot color="#16a34a" label={`${t('approuved')} ${Math.round((docsStats?.docsApproved.length / docsStats?.total) * 100)}%`} />
+            <LegendDot color="#d97706" label={`${t('inProgress')} ${Math.round((docsStats?.docsPending.length / docsStats?.total) * 100)}%`} />
+            <LegendDot color="#dc2626" label={`${t('rejected')} ${Math.round((docsStats?.docsRejected.length / docsStats?.total) * 100)}%`} />
           </div>
           <div className="relative h-52">
             <canvas ref={donutRef} />
@@ -218,10 +228,10 @@ export default function DashboardPage() {
 
         {/* Bar */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
-          <p className="text-sm font-medium text-neutral-800">Documents par développeur</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Contributions individuelles</p>
+          <p className="text-sm font-medium text-neutral-800">{t('graphDeuxTitle')}</p>
+          <p className="text-xs text-neutral-400 mt-0.5 mb-4">{t('graphDeuxDesc')}</p>
           <div className="flex gap-3 mb-3">
-            <LegendDot color="#c5262e" label="Docs soumis" />
+            <LegendDot color="#c5262e" label={t('docSoumis')} />
           </div>
           <div className="relative h-52">
             <canvas ref={barRef} />
@@ -234,11 +244,11 @@ export default function DashboardPage() {
 
         {/* Line */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
-          <p className="text-sm font-medium text-neutral-800">Activité mensuelle</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Documents soumis par mois</p>
+          <p className="text-sm font-medium text-neutral-800">{t('graphTroiTitle')}</p>
+          <p className="text-xs text-neutral-400 mt-0.5 mb-4">{t('graphTroiDesc')}</p>
           <div className="flex gap-3 mb-3 flex-wrap">
-            <LegendDot color="#c5262e" label="Soumissions" />
-            <LegendDot color="#16a34a" label="Approuvés" dashed />
+            <LegendDot color="#c5262e" label={t('soumissions')} />
+            <LegendDot color="#16a34a" label={t('approuved')} dashed />
           </div>
           <div className="relative h-48">
             <canvas ref={lineRef} />
@@ -247,8 +257,8 @@ export default function DashboardPage() {
 
         {/* Dev ranking */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
-          <p className="text-sm font-medium text-neutral-800">Classement développeurs</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">Nombre de documents soumis</p>
+          <p className="text-sm font-medium text-neutral-800">{t('graphQuatreTitle')}</p>
+          <p className="text-xs text-neutral-400 mt-0.5 mb-4">{t('graphQuatreDesc')}</p>
           <div className="space-y-0 divide-y divide-neutral-100">
             {users.map((dev) => (
               <div key={dev.email} className="flex items-center gap-3 py-3">
@@ -272,7 +282,6 @@ export default function DashboardPage() {
                 <span className="text-sm font-semibold text-neutral-800 shrink-0">{dev.docs.length}</span>
               </div>
             ))}
-           
           </div>
         </div>
       </div>

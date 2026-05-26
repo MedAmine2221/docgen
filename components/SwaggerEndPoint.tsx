@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { FiCopy, FiCheck, FiChevronDown, FiChevronRight } from "react-icons/fi";
 import { SwaggerMethodBadge } from "./SwaggerMethodeBadge";
+import { useTranslation } from "react-i18next";
 
 interface SwaggerEndpointProps {
   method: string;
@@ -19,6 +20,7 @@ export function SwaggerEndpoint({
   onCopy,
   copiedId,
 }: SwaggerEndpointProps) {
+  const { t } = useTranslation('swagger');
   const [expanded, setExpanded] = useState(false);
   const fullUrl = `${baseUrl}${endpoint}`;
   const copyId = `${method}-${endpoint}`;
@@ -58,7 +60,7 @@ export function SwaggerEndpoint({
           {/* Full URL */}
           <div className="mb-4">
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              Request URL
+              {t('request_url')}
             </p>
             <div className="flex items-center gap-2">
               <code className="text-sm bg-white px-3 py-2 rounded border border-gray-200 text-[#c5262e] font-mono break-all flex-1">
@@ -80,7 +82,7 @@ export function SwaggerEndpoint({
           {/* Example Request */}
           <div>
             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">
-              Example Request
+              {t('example_request')}
             </p>
             <pre className="text-xs bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto">
               {`${method} ${endpoint}

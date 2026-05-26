@@ -1,0 +1,26 @@
+{
+  "main": "Main",
+  "settings": "Settings",
+  "dashboard": "Dashboard",
+  "expand_menu": "Expand menu",
+  "collapse_menu": "Collapse menu",
+  "my_profile": "My profile",
+  "logout": "Logout",
+  "logout_confirm_title": "Logout",
+  "logout_confirm_message": "Are you sure you want to log out?",
+  "action_irreversible": "This action is irreversible.",
+  "cancel": "Cancel",
+  "nav": {
+    "dashboard": "Dashboard",
+    "admin_dashboard": "Admin Home",
+    "users_management": "Manage Users",
+    "documents_management": "Manage Documents",
+    "history": "History",
+    "profile": "Manage my profile",
+    "my_profile": "My profile",
+    "settings": "Settings",
+    "dev_dashboard": "Developer Dashboard",
+    "manage_docs": "Manage Documents",
+    "client_dashboard": "Client Dashboard"
+  }
+}

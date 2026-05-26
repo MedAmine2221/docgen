@@ -2,24 +2,25 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNotifications, NotificationPayload, NotificationEvent } from '@/hooks/useNotif';
+import { useTranslation } from 'react-i18next';
 
 // ─── Config visuelle par événement ───────────────────────────────────────────
 
 const EVENT_CONFIG: Record<
   NotificationEvent,
-  { label: string; color: string; icon: string }
+  { labelKey: string; color: string; icon: string }
 > = {
-  'doc:created':    { label: 'Document', color: '#0f6e56', icon: '📄' },
-  'doc:updated':    { label: 'Document', color: '#185fa5', icon: '✏️' },
-  'doc:deleted':    { label: 'Document', color: '#a32d2d', icon: '🗑️' },
-  'user:created':   { label: 'Utilisateur', color: '#533ab7', icon: '👤' },
-  'user:updated':   { label: 'Utilisateur', color: '#185fa5', icon: '👤' },
-  'user:deleted':   { label: 'Utilisateur', color: '#a32d2d', icon: '👤' },
-  'api:created':    { label: 'API', color: '#0f6e56', icon: '🔌' },
-  'api:updated':    { label: 'API', color: '#185fa5', icon: '🔌' },
-  'api:deleted':    { label: 'API', color: '#a32d2d', icon: '🔌' },
-  'activity:logged':{ label: 'Activité', color: '#854f0b', icon: '📊' },
-  'email:sent':     { label: 'Email', color: '#533ab7', icon: '✉️' },
+  'doc:created':    { labelKey: 'notifications.doc', color: '#0f6e56', icon: '📄' },
+  'doc:updated':    { labelKey: 'notifications.doc', color: '#185fa5', icon: '✏️' },
+  'doc:deleted':    { labelKey: 'notifications.doc', color: '#a32d2d', icon: '🗑️' },
+  'user:created':   { labelKey: 'notifications.user', color: '#533ab7', icon: '👤' },
+  'user:updated':   { labelKey: 'notifications.user', color: '#185fa5', icon: '👤' },
+  'user:deleted':   { labelKey: 'notifications.user', color: '#a32d2d', icon: '👤' },
+  'api:created':    { labelKey: 'notifications.api', color: '#0f6e56', icon: '🔌' },
+  'api:updated':    { labelKey: 'notifications.api', color: '#185fa5', icon: '🔌' },
+  'api:deleted':    { labelKey: 'notifications.api', color: '#a32d2d', icon: '🔌' },
+  'activity:logged':{ labelKey: 'notifications.activity', color: '#854f0b', icon: '📊' },
+  'email:sent':     { labelKey: 'notifications.email', color: '#533ab7', icon: '✉️' },
 };
 
 // ─── Types internes ───────────────────────────────────────────────────────────
@@ -35,6 +36,7 @@ const DURATION_MS = 4500;
 // ─── Composant ────────────────────────────────────────────────────────────────
 
 export function NotificationToast() {
+  const { t } = useTranslation('common');
   const [toasts, setToasts] = useState<Toast[]>([]);
   const timersRef = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map());
 
@@ -88,11 +90,13 @@ export function NotificationToast() {
         width: '100%',
       }}
       role="region"
-      aria-label="Notifications"
+      aria-label={t('notifications.region_label')}
       aria-live="polite"
     >
       {toasts.map((toast) => {
         const cfg = EVENT_CONFIG[toast.event];
+        const eventLabel = t(cfg.labelKey);
+        
         return (
           <div
             key={toast.id}
@@ -124,7 +128,7 @@ export function NotificationToast() {
                   letterSpacing: '0.05em',
                 }}
               >
-                {cfg.label}
+                {eventLabel}
               </p>
               <p
                 style={{
@@ -144,13 +148,13 @@ export function NotificationToast() {
                     color: 'var(--color-text-secondary)',
                   }}
                 >
-                  par {toast.triggeredBy}
+                  {t('notifications.by')} {toast.triggeredBy}
                 </p>
               )}
             </div>
             <button
               onClick={() => removeToast(toast.id)}
-              aria-label="Fermer"
+              aria-label={t('notifications.close')}
               style={{
                 background: 'none',
                 border: 'none',

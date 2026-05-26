@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useNotifications, NotificationPayload } from '@/hooks/useNotif';
+import { useTranslation } from 'react-i18next';
 
 interface StoredNotification extends NotificationPayload {
   id: string;
@@ -22,15 +23,16 @@ const EVENT_META: Record<string, { icon: string; color: string; bg: string }> = 
   'email:sent':     { icon: '✉️', color: '#8b5cf6', bg: '#ede9fe' },
 };
 
-function timeAgo(iso: string) {
+function timeAgo(iso: string, t: (key: string) => string) {
   const diff = Math.floor((Date.now() - new Date(iso).getTime()) / 1000);
-  if (diff < 60) return `${diff}s`;
-  if (diff < 3600) return `${Math.floor(diff / 60)}min`;
-  if (diff < 86400) return `${Math.floor(diff / 3600)}h`;
-  return `${Math.floor(diff / 86400)}j`;
+  if (diff < 60) return `${diff}${t('notifications.time.seconds')}`;
+  if (diff < 3600) return `${Math.floor(diff / 60)}${t('notifications.time.minutes')}`;
+  if (diff < 86400) return `${Math.floor(diff / 3600)}${t('notifications.time.hours')}`;
+  return `${Math.floor(diff / 86400)}${t('notifications.time.days')}`;
 }
 
 export function NotificationBell() {
+  const { t } = useTranslation('common');
   const [notifications, setNotifications] = useState<StoredNotification[]>([]);
   const [open, setOpen] = useState(false);
   const [animating, setAnimating] = useState(false);
@@ -103,7 +105,9 @@ export function NotificationBell() {
       <button
         className="bell-btn"
         onClick={toggle}
-        aria-label={`Notifications${unread > 0 ? ` (${unread} non lues)` : ''}`}
+        aria-label={unread > 0 
+          ? t('notifications.aria_label_with_count', { count: unread })
+          : t('notifications.aria_label')}
         style={{
           position: 'relative',
           background: 'none',
@@ -169,7 +173,7 @@ export function NotificationBell() {
         <div
           className="notif-panel"
           role="dialog"
-          aria-label="Notifications"
+          aria-label={t('notifications.title')}
           style={{
             position: 'absolute',
             top: 'calc(100% + 10px)',
@@ -194,7 +198,7 @@ export function NotificationBell() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
               <span style={{ fontWeight: 600, fontSize: '0.9rem', color: '#0f172a' }}>
-                Notifications
+                {t('notifications.title')}
               </span>
               {unread > 0 && (
                 <span style={{
@@ -205,7 +209,7 @@ export function NotificationBell() {
                   padding: '1px 7px',
                   borderRadius: '99px',
                 }}>
-                  {unread} non lue{unread > 1 ? 's' : ''}
+                  {unread} {unread > 1 ? t('notifications.unread_plural') : t('notifications.unread_singular')}
                 </span>
               )}
             </div>
@@ -225,7 +229,7 @@ export function NotificationBell() {
                   borderRadius: '6px',
                 }}
               >
-                Tout effacer
+                {t('notifications.clear_all')}
               </button>
             )}
           </div>
@@ -245,10 +249,10 @@ export function NotificationBell() {
               }}>
                 <div style={{ fontSize: '2rem', marginBottom: '8px' }}>🔔</div>
                 <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', fontWeight: 500 }}>
-                  Aucune notification
+                  {t('notifications.empty_title')}
                 </p>
                 <p style={{ margin: '4px 0 0', fontSize: '0.75rem', color: '#cbd5e1' }}>
-                  Les événements apparaîtront ici
+                  {t('notifications.empty_description')}
                 </p>
               </li>
             ) : (
@@ -319,7 +323,7 @@ export function NotificationBell() {
                           </>
                         )}
                         <span style={{ fontSize: '0.7rem', color: '#94a3b8', flexShrink: 0 }}>
-                          {timeAgo(n.timestamp)}
+                          {timeAgo(n.timestamp, t)}
                         </span>
                       </div>
                     </div>

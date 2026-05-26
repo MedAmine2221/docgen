@@ -6,5 +6,33 @@
   "search": "Search",
   "loading": "Loading...",
   "error": "Error",
-  "success": "Success"
+  "success": "Success",
+  "du": "of",
+  "total": "total",
+  "par": "by",
+  "statut": "status",
+  "documents": "documents",
+  "au": "to",
+  "status": {
+    "approved": "APPROVED",
+    "pending": "PENDING",
+    "draft": "DRAFT",
+    "rejected": "REJECTED"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "aria_label": "Notifications",
+    "aria_label_with_count": "Notifications ({{count}} unread)",
+    "clear_all": "Clear all",
+    "empty_title": "No notifications",
+    "empty_description": "Events will appear here",
+    "unread_singular": "unread",
+    "unread_plural": "unread",
+    "time": {
+      "seconds": "s",
+      "minutes": "m",
+      "hours": "h",
+      "days": "d"
+    }
+  }
 }

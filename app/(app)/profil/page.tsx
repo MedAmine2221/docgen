@@ -10,8 +10,10 @@ import { PasswordField } from "@/components/PasswordField";
 import { changeUserPassword } from "@/redux/actions/users/changeUserPassword";
 import { Modal } from "@/components/ConfirmModal";
 import { useAppDispatch } from "@/hooks/useAppDispatch";
+import { useTranslation } from "react-i18next";
 
 export default function Profil() {
+  const { t } = useTranslation('profile');
   const dispatch = useAppDispatch();
   const router = useRouter();
   const profil = useSelector((state: any) => state.profil?.profil);
@@ -33,15 +35,15 @@ export default function Profil() {
     const confirmPassword = formData.get("confirmPassword") as string;
 
     if (!currentPassword || !newPassword || !confirmPassword) {
-      setError("Tous les champs sont requis.");
+      setError(t('all_fields_required'));
       return;
     }
     if (newPassword !== confirmPassword) {
-      setError("Les mots de passe ne correspondent pas.");
+      setError(t('passwords_do_not_match'));
       return;
     }
     if (newPassword.length < 8) {
-      setError("Le mot de passe doit contenir au moins 8 caractères.");
+      setError(t('password_min_length'));
       return;
     }
 
@@ -56,13 +58,13 @@ export default function Profil() {
       router.replace("/auth/login");
       (e.target as HTMLFormElement).reset();
     } catch {
-      setError("Mot de passe actuel incorrect.");
+      setError(t('incorrect_current_password'));
     } finally {
       setSaving(false);
     }
   };
 
-  const color  = getColor(profil?.name ?? "");
+  const color = getColor(profil?.name ?? "");
   const initials = getInitials(profil?.name ?? "");
   const isAdmin = profil?.role?.name_eng === "ADMIN";
 
@@ -114,9 +116,9 @@ export default function Profil() {
           {/* Stats row */}
           <div className="mt-5 pt-4 border-t border-neutral-100 grid grid-cols-3 gap-4">
             {[
-              { label: "Rôle",    value: profil?.role?.name_eng || "—" },
-              { label: "Statut",  value: "Actif" },
-              { label: "Accès",   value: isAdmin ? "Total" : "Limité" },
+              { label: t('role'), value: profil?.role?.name_eng || "—" },
+              { label: t('status'), value: t('active') },
+              { label: t('access'), value: isAdmin ? t('full_access') : t('limited_access') },
             ].map(({ label, value }) => (
               <div key={label} className="text-center">
                 <p className="text-sm font-semibold text-neutral-900">{value}</p>
@@ -133,13 +135,13 @@ export default function Profil() {
           <div className="w-6 h-6 rounded-md bg-[#c5262e]/10 flex items-center justify-center">
             <FiUser className="w-3.5 h-3.5 text-[#c5262e]" />
           </div>
-          <h2 className="text-sm font-semibold text-neutral-800">Informations du compte</h2>
+          <h2 className="text-sm font-semibold text-neutral-800">{t('account_info')}</h2>
         </div>
         <div className="divide-y divide-neutral-50">
           {[
-            { icon: <FiUser className="w-3.5 h-3.5" />,   label: "Nom complet",     value: profil?.name },
-            { icon: <FiMail className="w-3.5 h-3.5" />,   label: "Adresse e-mail",  value: profil?.email },
-            { icon: <FiShield className="w-3.5 h-3.5" />, label: "Rôle",            value: profil?.role?.name_eng || profil?.role?.name_fr },
+            { icon: <FiUser className="w-3.5 h-3.5" />, label: t('full_name'), value: profil?.name },
+            { icon: <FiMail className="w-3.5 h-3.5" />, label: t('email_address'), value: profil?.email },
+            { icon: <FiShield className="w-3.5 h-3.5" />, label: t('role'), value: profil?.role?.name_eng || profil?.role?.name_fr },
           ].map(({ icon, label, value }) => (
             <div key={label} className="flex items-center gap-4 px-5 py-4 hover:bg-neutral-50/60 transition-colors">
               <div className="w-8 h-8 rounded-lg bg-neutral-100 flex items-center justify-center text-neutral-500 shrink-0">
@@ -149,8 +151,7 @@ export default function Profil() {
                 <p className="text-xs text-neutral-400">{label}</p>
                 <p className="text-sm font-medium text-neutral-900 mt-0.5 truncate">{value ?? "—"}</p>
               </div>
-              {/* Read-only badge */}
-              <span className="text-xs text-neutral-300 font-medium">lecture seule</span>
+              <span className="text-xs text-neutral-300 font-medium">{t('read_only')}</span>
             </div>
           ))}
         </div>
@@ -162,35 +163,33 @@ export default function Profil() {
           <div className="w-6 h-6 rounded-md bg-amber-50 flex items-center justify-center">
             <FiLock className="w-3.5 h-3.5 text-amber-500" />
           </div>
-          <h2 className="text-sm font-semibold text-neutral-800">Changer le mot de passe</h2>
+          <h2 className="text-sm font-semibold text-neutral-800">{t('change_password')}</h2>
         </div>
 
         <form onSubmit={handleChangePassword} className="p-5 space-y-3">
           <PasswordField
             name="currentPassword"
-            label="Mot de passe actuel"
+            label={t('current_password')}
             show={showCurrent}
             onToggle={() => setShowCurrent((v) => !v)}
           />
           <PasswordField
             name="newPassword"
-            label="Nouveau mot de passe"
+            label={t('new_password')}
             show={showNew}
             onToggle={() => setShowNew((v) => !v)}
           />
           <PasswordField
             name="confirmPassword"
-            label="Confirmer le nouveau mot de passe"
+            label={t('confirm_new_password')}
             show={showConfirm}
             onToggle={() => setShowConfirm((v) => !v)}
           />
 
-          {/* Password hint */}
           <p className="text-xs text-neutral-400">
-            Le mot de passe doit contenir au moins 8 caractères.
+            {t('password_hint')}
           </p>
 
-          {/* Feedback */}
           {error && (
             <div className="flex items-start gap-2 text-xs text-red-600 bg-red-50 border border-red-100 px-3 py-2.5 rounded-xl">
               <FiAlertTriangle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
@@ -200,7 +199,7 @@ export default function Profil() {
           {success && (
             <div className="flex items-center gap-2 text-xs text-green-700 bg-green-50 border border-green-100 px-3 py-2.5 rounded-xl">
               <FiCheck className="w-3.5 h-3.5 shrink-0" />
-              Mot de passe modifié avec succès.
+              {t('password_success')}
             </div>
           )}
 
@@ -212,7 +211,7 @@ export default function Profil() {
                          font-medium hover:bg-[#a81e25] disabled:opacity-60 transition"
             >
               {saving ? <Spinner white /> : <FiLock className="w-3.5 h-3.5" />}
-              Mettre à jour
+              {t('update')}
             </button>
           </div>
         </form>
@@ -224,13 +223,13 @@ export default function Profil() {
           <div className="w-6 h-6 rounded-md bg-red-50 flex items-center justify-center">
             <FiAlertTriangle className="w-3.5 h-3.5 text-red-500" />
           </div>
-          <h2 className="text-sm font-semibold text-red-500">Zone de danger</h2>
+          <h2 className="text-sm font-semibold text-red-500">{t('danger_zone')}</h2>
         </div>
         <div className="px-5 py-4 flex items-center justify-between gap-4">
           <div>
-            <p className="text-sm font-medium text-neutral-900">Se déconnecter</p>
+            <p className="text-sm font-medium text-neutral-900">{t('logout')}</p>
             <p className="text-xs text-neutral-400 mt-0.5">
-              Votre session sera terminée et vous serez redirigé vers la page de connexion.
+              {t('logout_description')}
             </p>
           </div>
           <button
@@ -239,7 +238,7 @@ export default function Profil() {
                        text-red-500 hover:bg-red-50 hover:text-red-600 transition font-medium"
           >
             <FiLogOut className="w-4 h-4" />
-            Déconnexion
+            {t('logout_button')}
           </button>
         </div>
       </div>
@@ -248,14 +247,14 @@ export default function Profil() {
       <Modal
         open={showConfirmLogout}
         onClose={() => setShowConfirmLogout(false)}
-        title="Déconnecter"
+        title={t('logout_confirm_title')}
         footer={
           <>
             <button
               onClick={() => setShowConfirmLogout(false)}
               className="px-4 py-2 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
             >
-              Annuler
+              {t('cancel')}
             </button>
             <button
               onClick={() => handleLogout(setSaving, router)}
@@ -264,14 +263,14 @@ export default function Profil() {
                          hover:bg-red-600 disabled:opacity-60 transition flex items-center gap-2"
             >
               {saving && <Spinner white />}
-              Déconnecter
+              {t('logout_button')}
             </button>
           </>
         }
       >
         <p className="text-sm text-neutral-600">
-          Voulez-vous vraiment vous déconnecter ?<br />
-          Cette action est irréversible.
+          {t('logout_confirm_message')}<br />
+          {t('action_irreversible')}
         </p>
       </Modal>
     </div>

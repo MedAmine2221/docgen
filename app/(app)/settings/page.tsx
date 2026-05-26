@@ -9,7 +9,6 @@ import { FiBell, FiChevronRight, FiGlobe, FiMonitor, FiMoon, FiSun, FiUser } fro
 export default function SettingsPage() {
   const router =  useRouter();
   const { t } = useTranslation('settings');
-  const { t: tCommon } = useTranslation('common');
   const [dateFormat, setDateFormat] = useState("JJ/MM/AAAA");
   const [timezone, setTimezone] = useState("UTC+1");
   const [theme, setTheme] = useState("clair");

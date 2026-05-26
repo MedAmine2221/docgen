@@ -27,6 +27,7 @@ import { formatDate } from "@/utils/functions";
 import { useNotifications } from "@/hooks/useNotif";
 import { getMe } from "@/redux/actions/auth/login";
 import { GoVersions } from "react-icons/go";
+import { useTranslation } from "react-i18next";
 
 export interface ApiEntry {
   id?: number;
@@ -43,82 +44,84 @@ const labelCls = "block text-xs font-medium text-neutral-500 mb-1";
 
 /* ── component ────────────────────────────────────────────────────── */
 export default function Docs() {
-  const dispatch  = useAppDispatch();
+  const { t } = useTranslation('docsDev');
+  const dispatch = useAppDispatch();
   const me = useSelector((state: RootState)=> state.profil.profil);
   
-const [viewingDoc, setViewingDoc] = useState<DocType | null>(null);
-const [showViewModal, setShowViewModal] = useState(false);
-const openViewDetails = (doc: DocType) => {  
-  setViewingDoc(doc);
-  setShowViewModal(true);
-};
-const [showCloseConfirm, setShowCloseConfirm] = useState(false);
-const [pendingCloseAction, setPendingCloseAction] = useState<(() => void) | null>(null);
+  const [viewingDoc, setViewingDoc] = useState<DocType | null>(null);
+  const [showViewModal, setShowViewModal] = useState(false);
+  const openViewDetails = (doc: DocType) => {  
+    setViewingDoc(doc);
+    setShowViewModal(true);
+  };
+  const [showCloseConfirm, setShowCloseConfirm] = useState(false);
+  const [pendingCloseAction, setPendingCloseAction] = useState<(() => void) | null>(null);
 
-  const [saving,        setSaving]        = useState(false);
-  const [editingDoc,    setEditingDoc]    = useState<DocType | null>(null);
-  const [deletingDoc,   setDeletingDoc]   = useState<DocType | null>(null);
-  const [showSlide,     setShowSlide]     = useState(false);
-  const [showDelete,    setShowDelete]    = useState(false);
-  const [search,        setSearch]        = useState("");
-  const [filterStatus,  setFilterStatus]  = useState("all");
-  const [page,          setPage]          = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [editingDoc, setEditingDoc] = useState<DocType | null>(null);
+  const [deletingDoc, setDeletingDoc] = useState<DocType | null>(null);
+  const [showSlide, setShowSlide] = useState(false);
+  const [showDelete, setShowDelete] = useState(false);
+  const [search, setSearch] = useState("");
+  const [filterStatus, setFilterStatus] = useState("all");
+  const [page, setPage] = useState(1);
   const [formError, setFormError] = useState<string | null>(null);
-const [initialSnapshot, setInitialSnapshot] = useState<string>("");
-const [hasChanges, setHasChanges] = useState(false);
-  const [apiEntries,    setApiEntries]    = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
+  const [initialSnapshot, setInitialSnapshot] = useState<string>("");
+  const [hasChanges, setHasChanges] = useState(false);
+  const [apiEntries, setApiEntries] = useState<ApiEntry[]>([{ apiMethod: "GET", endPoint: "" }]);
   const [editingApiIdx, setEditingApiIdx] = useState<number | null>(null);
   const [editingApiDraft, setEditingApiDraft] = useState<ApiEntry>({ apiMethod: "GET", endPoint: "" });
   const usersList = useSelector((state: RootState) => state.users.users) ?? [];
   const listeClient = useMemo(()=>{
     return usersList.filter((item)=> item.role.name_fr === "CLIENT")
   },[usersList])
-const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
-  return JSON.stringify({
-    name: doc?.name ?? "",
-    description: doc?.description ?? "",
-    submissionDate: doc?.submissionDate ? doc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16),
-    baseUrl: doc?.baseUrl ?? "",
-    commonHeader: doc?.commonHeader ?? "",
-    bearerToken: doc?.bearerToken ?? "",
-    apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
-  });
-};
-useNotifications(
-  () => {
-    dispatch(getMe()); // rechargera me?.docs automatiquement
-  },
-  ['doc:created', 'doc:updated', 'doc:deleted']
-);
-const hasDocFormChanges = () => {
-  if (!showSlide) return false;
-  
-  if (editingDoc) {
-    // Mode édition - utiliser hasChanges existant
-    return hasChanges;
-  } else {
-    // Mode ajout - vérifier si des valeurs ont été saisies
-    const form = document.querySelector('form');
-    if (!form) return false;
-    
-    const formData = new FormData(form);
-    const name = formData.get("name") as string;
-    const description = formData.get("description") as string;
-    const baseUrl = formData.get("baseUrl") as string;
-    const hasAnyApi = apiEntries.some(api => api.endPoint.trim() !== "");
-    
-    return !!(name || description || baseUrl || hasAnyApi);
-  }
-};
 
-const attemptClose = (closeAction: () => void) => {
-  if (hasDocFormChanges()) {
-    setPendingCloseAction(() => closeAction);
-    setShowCloseConfirm(true);
-  } else {
-    closeAction();
-  }
-};
+  const buildSnapshot = (doc: DocType | null, entries: ApiEntry[]) => {
+    return JSON.stringify({
+      name: doc?.name ?? "",
+      description: doc?.description ?? "",
+      submissionDate: doc?.submissionDate ? doc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16),
+      baseUrl: doc?.baseUrl ?? "",
+      commonHeader: doc?.commonHeader ?? "",
+      bearerToken: doc?.bearerToken ?? "",
+      apis: entries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+    });
+  };
+
+  useNotifications(
+    () => {
+      dispatch(getMe());
+    },
+    ['doc:created', 'doc:updated', 'doc:deleted']
+  );
+
+  const hasDocFormChanges = () => {
+    if (!showSlide) return false;
+    
+    if (editingDoc) {
+      return hasChanges;
+    } else {
+      const form = document.querySelector('form');
+      if (!form) return false;
+      
+      const formData = new FormData(form);
+      const name = formData.get("name") as string;
+      const description = formData.get("description") as string;
+      const baseUrl = formData.get("baseUrl") as string;
+      const hasAnyApi = apiEntries.some(api => api.endPoint.trim() !== "");
+      
+      return !!(name || description || baseUrl || hasAnyApi);
+    }
+  };
+
+  const attemptClose = (closeAction: () => void) => {
+    if (hasDocFormChanges()) {
+      setPendingCloseAction(() => closeAction);
+      setShowCloseConfirm(true);
+    } else {
+      closeAction();
+    }
+  };
 
   const addApiEntry = () =>
     setApiEntries(prev => [...prev, { apiMethod: "GET", endPoint: "" }]);
@@ -126,12 +129,10 @@ const attemptClose = (closeAction: () => void) => {
   const removeApiEntry = (idx: number) => {
     const entry = apiEntries[idx];
     if (entry.id) {
-      // Mark existing API for deletion
       setApiEntries(prev => prev.map((e, i) => 
         i === idx ? { ...e, _markedForDelete: true } : e
       ));
     } else {
-      // Remove new API completely
       setApiEntries(prev => prev.filter((_, i) => i !== idx));
     }
   };
@@ -148,59 +149,61 @@ const attemptClose = (closeAction: () => void) => {
 
   const cancelEditApi = () => setEditingApiIdx(null);
 
-const openAdd = () => {
-  setEditingDoc(null);
-  setApiEntries([{ apiMethod: "GET", endPoint: "" }]);
-  setEditingApiIdx(null);
-  setInitialSnapshot("");
-  setHasChanges(false);
-  setShowSlide(true);
-};
-
-const openEdit = (doc: DocType) => {
-  setEditingDoc(doc);
-  const existing: ApiEntry[] = (doc?.apis ?? []).map((a: any) => ({
-    id: a.id,
-    apiMethod: a.apiMethod,
-    endPoint: a.endPoint,
-  }));
-  const entries = existing.length ? existing : [{ apiMethod: "GET", endPoint: "" }];
-  setApiEntries(entries);
-  setEditingApiIdx(null);
-  const snap = buildSnapshot(doc, entries);
-  setInitialSnapshot(snap);
-  setHasChanges(false);
-  setShowSlide(true);
-};
-const checkChanges = (form: HTMLFormElement, currentEntries: ApiEntry[]) => {
-  if (!editingDoc) return;
-  const fd = new FormData(form);
-  const g = (k: string) => (fd.get(k) as string) ?? "";
-  const currentSnap = JSON.stringify({
-    name: g("name"),
-    description: g("description"),
-    submissionDate: g("submissionDate"),
-    baseUrl: g("baseUrl"),
-    commonHeader: g("commonHeader"),
-    bearerToken: g("bearerToken"),
-    apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
-  });
-  setHasChanges(currentSnap !== initialSnapshot);
-};
-useEffect(() => {
-  if (!showSlide || !editingDoc) return;
-  const apiSnap = apiEntries
-    .filter(a => !a._markedForDelete)
-    .map(a => `${a.apiMethod}:${a.endPoint}`)
-    .join("|");
-  const initialParsed = initialSnapshot ? JSON.parse(initialSnapshot) : null;
-  if (initialParsed && apiSnap !== initialParsed.apis) {
-    setHasChanges(true);
-  } else if (initialParsed && apiSnap === initialParsed.apis) {
-    // Re-check form fields too — reset only if needed
+  const openAdd = () => {
+    setEditingDoc(null);
+    setApiEntries([{ apiMethod: "GET", endPoint: "" }]);
+    setEditingApiIdx(null);
+    setInitialSnapshot("");
     setHasChanges(false);
-  }
-}, [apiEntries]);
+    setShowSlide(true);
+  };
+
+  const openEdit = (doc: DocType) => {
+    setEditingDoc(doc);
+    const existing: ApiEntry[] = (doc?.apis ?? []).map((a: any) => ({
+      id: a.id,
+      apiMethod: a.apiMethod,
+      endPoint: a.endPoint,
+    }));
+    const entries = existing.length ? existing : [{ apiMethod: "GET", endPoint: "" }];
+    setApiEntries(entries);
+    setEditingApiIdx(null);
+    const snap = buildSnapshot(doc, entries);
+    setInitialSnapshot(snap);
+    setHasChanges(false);
+    setShowSlide(true);
+  };
+
+  const checkChanges = (form: HTMLFormElement, currentEntries: ApiEntry[]) => {
+    if (!editingDoc) return;
+    const fd = new FormData(form);
+    const g = (k: string) => (fd.get(k) as string) ?? "";
+    const currentSnap = JSON.stringify({
+      name: g("name"),
+      description: g("description"),
+      submissionDate: g("submissionDate"),
+      baseUrl: g("baseUrl"),
+      commonHeader: g("commonHeader"),
+      bearerToken: g("bearerToken"),
+      apis: currentEntries.filter(a => !a._markedForDelete).map(a => `${a.apiMethod}:${a.endPoint}`).join("|"),
+    });
+    setHasChanges(currentSnap !== initialSnapshot);
+  };
+
+  useEffect(() => {
+    if (!showSlide || !editingDoc) return;
+    const apiSnap = apiEntries
+      .filter(a => !a._markedForDelete)
+      .map(a => `${a.apiMethod}:${a.endPoint}`)
+      .join("|");
+    const initialParsed = initialSnapshot ? JSON.parse(initialSnapshot) : null;
+    if (initialParsed && apiSnap !== initialParsed.apis) {
+      setHasChanges(true);
+    } else if (initialParsed && apiSnap === initialParsed.apis) {
+      setHasChanges(false);
+    }
+  }, [apiEntries]);
+
   const filtered = me?.docs?.filter((d: DocType) => {
     const q = search.toLowerCase();
     const match =
@@ -217,9 +220,9 @@ useEffect(() => {
     return match && statusMatch;
   }) ?? [];
 
-  const totalPages  = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
   const currentPage = Math.min(page, totalPages);
-  const paginated   = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const paginated = filtered.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const counts = {
     approved: me?.docs?.filter((d: DocType) => ["approve","approved"].includes(d.status?.toLowerCase())).length ?? 0,
@@ -228,62 +231,55 @@ useEffect(() => {
     rejected: me?.docs?.filter((d: DocType) => d.status?.toLowerCase() === "rejected").length ?? 0,
   };
 
-const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setSaving(true);
-  const fd = new FormData(e.currentTarget);
-  const g  = (k: string) => fd.get(k) as string;
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setSaving(true);
+    const fd = new FormData(e.currentTarget);
+    const g = (k: string) => fd.get(k) as string;
 
-  // ── Validation ──────────────────────────────────────────────────
-  const name           = g("name").trim();
-  const description    = g("description").trim();
-  const submissionDate = g("submissionDate").trim();
-  const baseUrl        = g("baseUrl").trim();
+    const name = g("name").trim();
+    const description = g("description").trim();
+    const submissionDate = g("submissionDate").trim();
+    const baseUrl = g("baseUrl").trim();
+    const validApis = apiEntries.filter(a => !a._markedForDelete && a.endPoint.trim() !== "");
 
-  const validApis = apiEntries.filter(a => !a._markedForDelete && a.endPoint.trim() !== "");
+    if (!name || !description || !submissionDate || !baseUrl) {
+      setFormError(t('required_fields'));
+      setSaving(false);
+      return;
+    }
+    if (validApis.length === 0) {
+      setFormError(t('endpoint_required'));
+      setSaving(false);
+      return;
+    }
 
-  if (!name || !description || !submissionDate || !baseUrl) {
-    setFormError("Veuillez remplir tous les champs obligatoires.");
-    setSaving(false);
-    return;
-  }
-  if (validApis.length === 0) {
-    setFormError("Veuillez ajouter au moins un endpoint valide.");
-    setSaving(false);
-    return;
-  }
-
-  setFormError(null);
+    setFormError(null);
 
     try {
-      
-      // Separate APIs by operation type
       const apisToDelete = apiEntries.filter(a => a._markedForDelete && a.id);
       const apisToKeep = apiEntries.filter(a => !a._markedForDelete);
       const apisToAdd = apisToKeep.filter(a => !a.id && a.endPoint.trim() !== "");
       const apisToUpdate = apisToKeep.filter(a => a.id && a.endPoint.trim() !== "");
+      
       const docPayload = {
-        name:           g("name"),
-        description:    g("description"),
-        status:         "draft",
+        name: g("name"),
+        description: g("description"),
+        status: "draft",
         submissionDate: g("submissionDate"),
-        baseUrl:        g("baseUrl"),
-        commonHeader:   g("commonHeader"),
-        bearerToken:    g("bearerToken"),
-        user_creator:   me?.id,
+        baseUrl: g("baseUrl"),
+        commonHeader: g("commonHeader"),
+        bearerToken: g("bearerToken"),
+        user_creator: me?.id,
         cause: g("cause") ?? null,
-        // Send separate arrays for CRUD operations
         apisToAdd,
         apisToUpdate,
         apisToDelete,
       };
-      
 
       if (editingDoc) {
         await dispatch(updateDoc({ id: String(editingDoc.id), docData: docPayload })).unwrap();
       } else {
-        
-        // For new document, only send APIs to add
         await dispatch(addDoc({
           name: docPayload?.name,
           description: docPayload.description,
@@ -294,8 +290,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           bearerToken: docPayload.bearerToken,
           user_creator: docPayload.user_creator,
           apis: apisToAdd,
-          assignedTo: g("assignedTo"), // ✅ ajouter cette ligne
-      })).unwrap();
+          assignedTo: g("assignedTo"),
+        })).unwrap();
       }
       setShowSlide(false);
       setEditingDoc(null);
@@ -321,40 +317,40 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
   };
 
   const handleReview = async (doc: DocType) => {
-  setSaving(true);
-  try {
-    // ✅ Solution : envoyer toutes les données existantes + le nouveau status
-    await dispatch(updateDoc({ 
-      id: String(doc.id), 
-      docData: { 
-        name: doc.name,
-        description: doc.description,
-        submissionDate: doc.submissionDate,
-        baseUrl: doc.baseUrl,
-        commonHeader: doc.commonHeader,
-        bearerToken: doc.bearerToken,
-        user_creator: doc.user_creator,
-        status: "pending",
-        // Important : inclure les APIs existantes
-        apisToUpdate: doc.apis?.filter((api: any) => api.id).map((api: any) => ({
-          id: api.id,
-          apiMethod: api.apiMethod,
-          endPoint: api.endPoint
-        })) || [],
-        apisToAdd: doc.apis?.filter((api: any) => !api.id).map((api: any) => ({
-          apiMethod: api.apiMethod,
-          endPoint: api.endPoint
-        })) || [],
-        apisToDelete: []
-      } 
-    })).unwrap();
-  } catch (err) {
-    console.error(err);
-  } finally {
-    setSaving(false);
-  }
-};
+    setSaving(true);
+    try {
+      await dispatch(updateDoc({ 
+        id: String(doc.id), 
+        docData: { 
+          name: doc.name,
+          description: doc.description,
+          submissionDate: doc.submissionDate,
+          baseUrl: doc.baseUrl,
+          commonHeader: doc.commonHeader,
+          bearerToken: doc.bearerToken,
+          user_creator: doc.user_creator,
+          status: "pending",
+          apisToUpdate: doc.apis?.filter((api: any) => api.id).map((api: any) => ({
+            id: api.id,
+            apiMethod: api.apiMethod,
+            endPoint: api.endPoint
+          })) || [],
+          apisToAdd: doc.apis?.filter((api: any) => !api.id).map((api: any) => ({
+            apiMethod: api.apiMethod,
+            endPoint: api.endPoint
+          })) || [],
+          apisToDelete: []
+        } 
+      })).unwrap();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const visibleEntries = apiEntries.map((e, i) => ({ ...e, _idx: i })).filter(e => !e._markedForDelete);
+
   return (
     <div className="space-y-4">
 
@@ -365,7 +361,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
           <input
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder="Rechercher par titre ou auteur…"
+            placeholder={t('search_placeholder')}
             className="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-neutral-200 bg-neutral-50
                        text-neutral-900 placeholder:text-neutral-400 focus:outline-none focus:ring-2
                        focus:ring-[#c5262e]/20 focus:border-[#c5262e] transition"
@@ -378,18 +374,18 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                      text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
                      focus:border-[#c5262e] transition min-w-40"
         >
-          <option value="all">Tous les statuts</option>
-          <option value="draft">Brouillon ({counts.draft})</option>
-          <option value="approved">Approuvés ({counts.approved})</option>
-          <option value="pending">En attente ({counts.pending})</option>
-          <option value="rejected">Rejetés ({counts.rejected})</option>
+          <option value="all">{t('all_status')}</option>
+          <option value="draft">{t('draft')} ({counts.draft})</option>
+          <option value="approved">{t('approved')} ({counts.approved})</option>
+          <option value="pending">{t('pending')} ({counts.pending})</option>
+          <option value="rejected">{t('rejected')} ({counts.rejected})</option>
         </select>
         <button
           onClick={openAdd}
           className="flex items-center gap-1.5 px-4 py-2.5 rounded-xl bg-[#c5262e] text-white
                      text-sm font-medium hover:bg-[#a81e25] transition shrink-0"
         >
-          <IconPlus /> Ajouter
+          <IconPlus /> {t('add')}
         </button>
       </div>
 
@@ -400,20 +396,20 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             <div className="w-14 h-14 rounded-2xl bg-neutral-100 flex items-center justify-center">
               <FiFileText className="w-6 h-6 text-neutral-300" />
             </div>
-            <p className="text-sm font-medium text-neutral-500">Aucun document trouvé</p>
-            <p className="text-xs text-neutral-400">Modifiez vos filtres ou ajoutez un nouveau document.</p>
+            <p className="text-sm font-medium text-neutral-500">{t('no_documents')}</p>
+            <p className="text-xs text-neutral-400">{t('adjust_filters')}</p>
           </div>
         ) : (
           <>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-neutral-100 bg-neutral-50/60">
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">Titre</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">Statut</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider hidden lg:table-cell">APIs</th>
-                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider hidden xl:table-cell">Mise à jour</th>
-                  <th className="px-6 py-3.5 text-right text-xs font-semibold text-neutral-400 uppercase tracking-wider">Actions</th>
-                 </tr>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">{t('title')}</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider">{t('status')}</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider hidden lg:table-cell">{t('apis')}</th>
+                  <th className="px-6 py-3.5 text-left text-xs font-semibold text-neutral-400 uppercase tracking-wider hidden xl:table-cell">{t('updated')}</th>
+                  <th className="px-6 py-3.5 text-right text-xs font-semibold text-neutral-400 uppercase tracking-wider">{t('actions')}</th>
+                </tr>
               </thead>
               <tbody>
                 {paginated.map((doc: DocType) => {
@@ -429,101 +425,75 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                             <p className="text-xs text-neutral-400 truncate mt-0.5 max-w-55">{doc.description}</p>
                           </div>
                         </div>
-                       </td>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <StatusBadge status={doc.status} />
-                       </td>
-     
-                       {/* <td className="px-6 py-4 hidden lg:table-cell">
+                      </td>
+                      <td className="px-6 py-4 hidden lg:table-cell">
                         <div className="flex flex-wrap gap-1">
                           {(doc.apis ?? []).length > 0 ? (
-                            <div className="flex items-center justify-center">
-                              {(doc.apis as any[]).slice(0, 1).map((api: any, i: number) => (
-                                <div key={i} className="flex items-center gap-1">
-                                  <MethodBadge method={api.apiMethod} />
-                                  <span className="text-[10px] text-neutral-400 font-mono truncate max-w-20">
-                                    {api.endPoint}
-                                  </span>
-                                </div>
-                              ))}
-                              {(doc.apis as any[]).length > 3 && (
-                                <span className="text-[10px] text-neutral-400 m-4">+{(doc.apis as any[]).length - 3}</span>
+                            <div className="flex items-center gap-1">
+                              <div className="flex items-center gap-1">
+                                <MethodBadge method={(doc.apis as any[])[0]?.apiMethod} />
+                                <span className="text-[10px] text-neutral-400 font-mono truncate max-w-28">
+                                  {(doc.apis as any[])[0]?.endPoint}
+                                </span>
+                              </div>
+                              {(doc.apis as any[]).length > 1 && (
+                                <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full ml-1">
+                                  +{(doc.apis as any[]).length - 1}
+                                </span>
                               )}
                             </div>
                           ) : (
-                            <span className="text-xs text-neutral-400 italic">{"Pas d'APIs"}</span>
+                            <span className="text-xs text-neutral-400 italic">{t('no_apis')}</span>
                           )}
                         </div>
-                      </td> */}
-                      <td className="px-6 py-4 hidden lg:table-cell">
-  <div className="flex flex-wrap gap-1">
-    {(doc.apis ?? []).length > 0 ? (
-      <div className="flex items-center gap-1">
-        {/* Afficher la première API */}
-        <div className="flex items-center gap-1">
-          <MethodBadge method={(doc.apis as any[])[0]?.apiMethod} />
-          <span className="text-[10px] text-neutral-400 font-mono truncate max-w-28">
-            {(doc.apis as any[])[0]?.endPoint}
-          </span>
-        </div>
-        
-        {/* Afficher le nombre d'APIs restantes */}
-        {(doc.apis as any[]).length > 1 && (
-          <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded-full ml-1">
-            +{(doc.apis as any[]).length - 1}
-          </span>
-        )}
-      </div>
-    ) : (
-      <span className="text-xs text-neutral-400 italic">{"Pas d'APIs"}</span>
-    )}
-  </div>
-</td>
+                      </td>
                       <td className="px-6 py-4 hidden xl:table-cell">
                         <span className="text-xs text-neutral-400">{formatDate(doc.submissionDate)}</span>
-                       </td>
+                      </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center justify-end gap-0.5">
-                    
-                            {doc.status?.toLowerCase() === "draft" && (
-                              <button
-                                onClick={() => handleReview(doc)}
-                                disabled={saving}
-                                className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
-                                          text-amber-600 bg-amber-50 border border-amber-200
-                                          hover:bg-amber-100 disabled:opacity-50 transition shrink-0"
-                                title="Soumettre pour review"
-                              >
-                                <FiSend className="w-3 h-3" /> Review
-                              </button>
-                            )}
+                          {doc.status?.toLowerCase() === "draft" && (
+                            <button
+                              onClick={() => handleReview(doc)}
+                              disabled={saving}
+                              className="flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium
+                                        text-amber-600 bg-amber-50 border border-amber-200
+                                        hover:bg-amber-100 disabled:opacity-50 transition shrink-0"
+                              title={t('submit_review')}
+                            >
+                              <FiSend className="w-3 h-3" /> {t('review')}
+                            </button>
+                          )}
                           <>
                             <button
                               onClick={() => openEdit(doc)}
                               className="p-1.5 rounded-lg text-neutral-300 hover:text-neutral-700 hover:bg-neutral-100
                               transition opacity-0 group-hover:opacity-100"
-                              title="Modifier"
-                              >
+                              title={t('edit')}
+                            >
                               <IconEdit />
                             </button>
                             <button
                               onClick={() => { setDeletingDoc(doc); setShowDelete(true); }}
                               className="p-1.5 rounded-lg text-neutral-300 hover:text-red-600 hover:bg-red-50
                               transition opacity-0 group-hover:opacity-100"
-                              title="Supprimer"
-                              >
+                              title={t('delete')}
+                            >
                               <IconDelete />
                             </button>
                             <button
                               onClick={() => openViewDetails(doc)}
                               className="p-1.5 rounded-lg text-[#c5262e]/40 hover:text-[#c5262e] hover:bg-[#c5262e]/5 transition"
-                              title="Voir"
+                              title={t('view')}
                             >
                               <FiEye className="w-4 h-4" />
                             </button>
                           </>
                         </div>
-                       </td>
+                      </td>
                     </tr>
                   );
                 })}
@@ -533,8 +503,8 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
             {/* Pagination */}
             <div className="px-6 py-3.5 border-t border-neutral-100 flex items-center justify-between">
               <p className="text-xs text-neutral-400">
-                Affichage de {Math.min((currentPage - 1) * PAGE_SIZE + 1, filtered.length)} à{" "}
-                {Math.min(currentPage * PAGE_SIZE, filtered.length)} sur {filtered.length} résultat{filtered.length !== 1 ? "s" : ""}
+                {t('showing')} {Math.min((currentPage - 1) * PAGE_SIZE + 1, filtered.length)} {t('to')}{" "}
+                {Math.min(currentPage * PAGE_SIZE, filtered.length)} {t('of')} {filtered.length} {t('results')}
               </p>
               <div className="flex items-center gap-1">
                 <button
@@ -567,24 +537,21 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         )}
       </div>
 
-      {/* Modal Add / Edit - Centrée */}
+      {/* Modal Add / Edit */}
       {showSlide && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <div
             className="absolute inset-0 bg-black/40 backdrop-blur-sm"
             onClick={() => attemptClose(() => {
               setShowSlide(false);
               setEditingDoc(null);
               setFormError(null);
-            })}/>
-
-          {/* Modal content */}
+            })}
+          />
           <div className="relative bg-white rounded-2xl shadow-2xl w-full max-w-lg z-10 flex flex-col max-h-[90vh]">
-            {/* Header */}
             <div className="flex items-center justify-between px-6 py-5 border-b border-neutral-100 shrink-0">
               <h2 className="text-base font-semibold text-neutral-900">
-                {editingDoc ? "Modifier le document" : "Nouveau document"}
+                {editingDoc ? t('edit_document') : t('new_document')}
               </h2>
               <button
                 onClick={() => attemptClose(() => {
@@ -598,21 +565,22 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               </button>
             </div>
 
-            {/* Scrollable body + Footer */}
-              <form
-                onSubmit={handleSubmit}
-                onChange={(e) => checkChanges(e.currentTarget, apiEntries)}
-                className="flex flex-col flex-1 overflow-hidden"
-              >
+            <form
+              onSubmit={handleSubmit}
+              onChange={(e) => checkChanges(e.currentTarget, apiEntries)}
+              className="flex flex-col flex-1 overflow-hidden"
+            >
               <div className="flex-1 overflow-y-auto px-6 py-5 space-y-4">
-                {editingDoc && <p className="text-base font-semibold text-neutral-400 tracking-wide mb-3 flex items-center gap-1.5">
-                  <GoVersions className="w-4 h-4" /> Version {editingDoc?.version}
-                </p>}
+                {editingDoc && (
+                  <p className="text-base font-semibold text-neutral-400 tracking-wide mb-3 flex items-center gap-1.5">
+                    <GoVersions className="w-4 h-4" /> {t('version')} {editingDoc?.version}
+                  </p>
+                )}
                 <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
-                  <FiFileText className="w-3.5 h-3.5" /> Informations générales
+                  <FiFileText className="w-3.5 h-3.5" /> {t('general_info')}
                 </p>
                 <div>
-                  <label className={labelCls}>Client assigné</label>
+                  <label className={labelCls}>{t('assigned_client')}</label>
                   <select 
                     name="assignedTo" 
                     required
@@ -620,7 +588,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     defaultValue=""
                     disabled={!!editingDoc}
                   >
-                    <option value="" disabled>Sélectionner un client</option>
+                    <option value="" disabled>{t('select_client')}</option>
                     {listeClient.map((client) => (
                       <option key={client.id} value={client.id}>
                         {client.name} ({client.email})
@@ -628,34 +596,34 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     ))}
                   </select>
                   <p className="text-xs text-neutral-400 mt-1">
-                    Ce client pourra consulter la documentation
+                    {t('client_can_view')}
                   </p>
                 </div>
-                {editingDoc && 
+                {editingDoc && (
                   <div>
-                    <label className={labelCls}>Cause de modification</label>
+                    <label className={labelCls}>{t('modification_cause')}</label>
                     <select
                       name="cause"
                       className="px-3 py-2.5 text-sm rounded-xl border border-neutral-200 bg-neutral-50
                                 text-neutral-700 focus:outline-none focus:ring-2 focus:ring-[#c5262e]/20
                                 focus:border-[#c5262e] transition min-w-40"
                     >
-                      <option value="Bug">Bug</option>
-                      <option value="Nouveau EndPoint">Nouveau EndPoint</option>
-                      <option value="Changement du document">Changement du document</option>
+                      <option value="Bug">{t('bug')}</option>
+                      <option value="Nouveau EndPoint">{t('new_endpoint')}</option>
+                      <option value="Changement du document">{t('doc_change')}</option>
                     </select>
                   </div>
-                }
+                )}
                 <div>
-                  <label className={labelCls}>Nom du document</label>
-                  <input name="name" defaultValue={editingDoc?.name || ""} placeholder="ex: commande carrefour" className={inputCls} />
+                  <label className={labelCls}>{t('doc_name')}</label>
+                  <input name="name" defaultValue={editingDoc?.name || ""} placeholder={t('doc_name_placeholder')} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Description</label>
-                  <input name="description" defaultValue={editingDoc?.description || ""} placeholder="Courte description…" className={inputCls} />
+                  <label className={labelCls}>{t('description')}</label>
+                  <input name="description" defaultValue={editingDoc?.description || ""} placeholder={t('description_placeholder')} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Date de soumission</label>
+                  <label className={labelCls}>{t('submission_date')}</label>
                   <input name="submissionDate" type="datetime-local"
                     defaultValue={editingDoc?.submissionDate ? editingDoc.submissionDate.slice(0, 16) : new Date().toISOString().slice(0, 16)}
                     className={inputCls} />
@@ -663,20 +631,20 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 
                 <div className="border-t border-neutral-100 pt-4 mt-1">
                   <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide mb-3 flex items-center gap-1.5">
-                    <FiGlobe className="w-3.5 h-3.5" /> Configuration API
+                    <FiGlobe className="w-3.5 h-3.5" /> {t('api_config')}
                   </p>
                 </div>
                 <div>
-                  <label className={labelCls}>Base URL</label>
+                  <label className={labelCls}>{t('base_url')}</label>
                   <input name="baseUrl" defaultValue={editingDoc?.baseUrl || ""} placeholder="https://api.example.com" className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Common Header</label>
+                  <label className={labelCls}>{t('common_header')}</label>
                   <input name="commonHeader" defaultValue={editingDoc?.commonHeader || ""}
                     placeholder={`{"Content-Type":"application/json"}`} className={inputCls} />
                 </div>
                 <div>
-                  <label className={labelCls}>Bearer Token</label>
+                  <label className={labelCls}>{t('bearer_token')}</label>
                   <input name="bearerToken" defaultValue={editingDoc?.bearerToken || ""}
                     placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9…" className={inputCls} />
                 </div>
@@ -685,11 +653,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                 <div className="border-t border-neutral-100 pt-4 mt-1">
                   <div className="flex items-center justify-between mb-3">
                     <p className="text-xs font-semibold text-neutral-400 uppercase tracking-wide flex items-center gap-1.5">
-                      <FiGlobe className="w-3.5 h-3.5" /> Endpoints
+                      <FiGlobe className="w-3.5 h-3.5" /> {t('endpoints')}
                     </p>
                     <button type="button" onClick={addApiEntry}
                       className="flex items-center gap-1 text-xs text-[#c5262e] hover:text-[#a81e25] font-medium transition">
-                      <FiPlus className="w-3.5 h-3.5" /> Ajouter un endpoint
+                      <FiPlus className="w-3.5 h-3.5" /> {t('add_endpoint')}
                     </button>
                   </div>
 
@@ -737,11 +705,11 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                             <div className="flex items-center gap-2 px-3 py-2 group/api">
                               <MethodBadge method={entry.apiMethod} />
                               <span className="flex-1 text-xs font-mono text-neutral-600 truncate">
-                                {entry.endPoint || <span className="text-neutral-300 italic">endpoint…</span>}
+                                {entry.endPoint || <span className="text-neutral-300 italic">{t('endpoint_placeholder')}</span>}
                               </span>
                               {isExisting && (
                                 <span className="text-[9px] font-semibold text-neutral-300 uppercase tracking-wide shrink-0 mr-1">
-                                  saved
+                                  {t('saved')}
                                 </span>
                               )}
                               <button type="button" onClick={() => startEditApi(idx)}
@@ -770,17 +738,15 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                   <p className="text-xs font-medium text-red-600">{formError}</p>
                 </div>
               )}
-              {/* Footer */}
               <div className="flex justify-end gap-3 px-6 py-4 border-t border-neutral-100 bg-neutral-50 shrink-0">
                 <button type="button" 
                   onClick={() => attemptClose(() => {
-    setShowSlide(false);
-    setEditingDoc(null);
-    setFormError(null);
-  })}
-                
+                    setShowSlide(false);
+                    setEditingDoc(null);
+                    setFormError(null);
+                  })}
                   className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-100 transition">
-                  Annuler
+                  {t('cancel')}
                 </button>
                 <button
                   disabled={saving || (!!editingDoc && !hasChanges)}
@@ -789,7 +755,7 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                     hover:bg-[#a81e25] disabled:opacity-60 disabled:cursor-not-allowed transition flex items-center gap-2"
                 >
                   {saving && <Spinner white />}
-                  {editingDoc ? "Enregistrer" : "Ajouter"}
+                  {editingDoc ? t('save') : t('add')}
                 </button>
               </div>
             </form>
@@ -801,86 +767,84 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
       <Modal
         open={showDelete}
         onClose={() => setShowDelete(false)}
-        title="Supprimer le document"
+        title={t('delete_document')}
         footer={
           <>
             <button onClick={() => setShowDelete(false)}
               className="px-4 py-2 text-sm rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition">
-              Annuler
+              {t('cancel')}
             </button>
             <button onClick={handleDelete} disabled={saving}
               className="px-4 py-2 text-sm rounded-xl bg-red-500 text-white font-medium
                          hover:bg-red-600 disabled:opacity-60 transition flex items-center gap-2">
               {saving && <Spinner white />}
-              Supprimer
+              {t('delete')}
             </button>
           </>
         }
       >
         <p className="text-sm text-neutral-600">
-          Voulez-vous vraiment supprimer{" "}
+          {t('delete_confirm_message')}{" "}
           <span className="font-semibold text-neutral-900">«{deletingDoc?.name}»</span> ?
-          <br />Cette action est irréversible.
+          <br />{t('action_irreversible')}
         </p>
       </Modal>
-      {/* Modal de détails */}
+
+      {/* View Details Modal */}
       <Modal
         open={showViewModal}
         onClose={() => setShowViewModal(false)}
-        title="Détails du document"
+        title={t('document_details')}
         footer={
           <button
             onClick={() => setShowViewModal(false)}
             className="px-4 py-2 text-sm rounded-xl bg-[#c5262e] text-white font-medium hover:bg-[#a81e25] transition"
           >
-            Fermer
+            {t('close')}
           </button>
         }
       >
         {viewingDoc && (
           <div className="space-y-4 max-h-[60vh] overflow-y-auto pr-2">
-            {/* Informations générales */}
             <div>
               <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-                Informations générales
+                {t('general_info')}
               </h3>
               <div className="space-y-2">
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Nom :</span>
+                  <span className="text-xs text-neutral-400">{t('doc_name')} :</span>
                   <span className="text-sm text-neutral-700 col-span-2 font-medium">{viewingDoc.name}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Description :</span>
+                  <span className="text-xs text-neutral-400">{t('description')} :</span>
                   <span className="text-sm text-neutral-600 col-span-2">{viewingDoc.description || "—"}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Statut :</span>
+                  <span className="text-xs text-neutral-400">{t('status')} :</span>
                   <div className="col-span-2"><StatusBadge status={viewingDoc.status} /></div>
                 </div>
-
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Date de soumission :</span>
+                  <span className="text-xs text-neutral-400">{t('submission_date')} :</span>
                   <span className="text-sm text-neutral-700 col-span-2">{formatDate(viewingDoc.submissionDate)}</span>
                 </div>
               </div>
             </div>
 
-            {/* Configuration API */}
             <div>
               <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-                Configuration API
+                {t('api_config')}
               </h3>
               <div className="space-y-2">
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Base URL :</span>
+                  <span className="text-xs text-neutral-400">{t('base_url')} :</span>
                   <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.baseUrl || "—"}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Common Header :</span>
+                  <span className="text-xs text-neutral-400">{t('common_header')} :</span>
                   <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">{viewingDoc.commonHeader || "—"}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
-                  <span className="text-xs text-neutral-400">Bearer Token :</span>
+                  <span className="text-xs text-neutral-400">{t('bearer_token')} :</span>
                   <span className="text-sm text-neutral-700 col-span-2 font-mono break-all">
                     {viewingDoc.bearerToken ? viewingDoc.bearerToken.substring(0, 30) + "..." : "—"}
                   </span>
@@ -888,18 +852,17 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
               </div>
             </div>
 
-            {/* Endpoints */}
             <div>
               <h3 className="text-sm font-semibold text-neutral-900 border-b border-neutral-100 pb-2 mb-3">
-                Endpoints ({viewingDoc.apis?.length || 0})
+                {t('endpoints')} ({viewingDoc.apis?.length || 0})
               </h3>
               <div className="space-y-2">
                 {(viewingDoc.apis ?? []).length > 0 ? (
                   <table className="w-full text-sm">
                     <thead>
                       <tr className="border-b border-neutral-100">
-                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">Méthode</th>
-                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">Endpoint</th>
+                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">{t('method')}</th>
+                        <th className="text-left py-2 text-xs text-neutral-400 font-medium">{t('endpoint')}</th>
                       </tr>
                     </thead>
                     <tbody>
@@ -910,59 +873,59 @@ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
                         </tr>
                       ))}
                     </tbody>
-                  </table>
+                   </table>
                 ) : (
-                  <p className="text-sm text-neutral-400 italic text-center py-4">Aucun endpoint configuré</p>
+                  <p className="text-sm text-neutral-400 italic text-center py-4">{t('no_endpoints')}</p>
                 )}
               </div>
             </div>
           </div>
         )}
       </Modal>
-  <Modal
-  open={showCloseConfirm}
-  onClose={() => {
-    setShowCloseConfirm(false);
-    setPendingCloseAction(null);
-  }}
-  title="Confirmation"
-  footer={
-    <div className="flex gap-3">
-      <button
-        onClick={() => {
-          setShowCloseConfirm(false);
-          setPendingCloseAction(null);
-        }}
-        className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
-      >
-        Rester
-      </button>
-      <button
-        onClick={() => {
-          if (pendingCloseAction) pendingCloseAction();
-          setShowCloseConfirm(false);
-          setPendingCloseAction(null);
-        }}
-        className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-red-500 text-white hover:bg-red-600 transition"
-      >
-        Quitter sans sauvegarder
-      </button>
-    </div>
-  }
->
-  <div className="text-center">
-    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
-      <FiX className="w-8 h-8 text-amber-500" />
-    </div>
-    <h3 className="text-lg font-semibold text-neutral-900 mb-2">Quitter sans sauvegarder ?</h3>
-    <p className="text-sm text-neutral-500">
-      Vous avez des modifications non enregistrées.
-      <br />
-      Êtes-vous sûr de vouloir quitter ?
-    </p>
-  </div>
-</Modal>
 
+      <Modal
+        open={showCloseConfirm}
+        onClose={() => {
+          setShowCloseConfirm(false);
+          setPendingCloseAction(null);
+        }}
+        title={t('confirmation')}
+        footer={
+          <div className="flex gap-3">
+            <button
+              onClick={() => {
+                setShowCloseConfirm(false);
+                setPendingCloseAction(null);
+              }}
+              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
+            >
+              {t('stay')}
+            </button>
+            <button
+              onClick={() => {
+                if (pendingCloseAction) pendingCloseAction();
+                setShowCloseConfirm(false);
+                setPendingCloseAction(null);
+              }}
+              className="flex-1 px-4 py-2.5 text-sm font-medium rounded-xl bg-red-500 text-white hover:bg-red-600 transition"
+            >
+              {t('leave_without_saving')}
+            </button>
+          </div>
+        }
+      >
+        <div className="text-center">
+          <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-amber-100 flex items-center justify-center">
+            <FiX className="w-8 h-8 text-amber-500" />
+          </div>
+          <h3 className="text-lg font-semibold text-neutral-900 mb-2">{t('unsaved_changes')}</h3>
+          <p className="text-sm text-neutral-500">
+            {t('unsaved_changes_message')}
+            <br />
+            {t('sure_leave')}
+          </p>
+        </div>
+      </Modal>
     </div>
   );
 }

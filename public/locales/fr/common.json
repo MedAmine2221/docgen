@@ -1,10 +1,38 @@
 {
-  "save": "Sauvegarder",
+  "save": "Enregistrer",
   "cancel": "Annuler",
   "edit": "Modifier",
   "delete": "Supprimer",
   "search": "Rechercher",
   "loading": "Chargement...",
-  "error": "Une erreur est survenue",
-  "success": "Opération réussie"
+  "error": "Erreur",
+  "success": "Succès",
+  "du": "du",
+  "total": "total",
+  "par": "par",
+  "statut": "statut",
+  "documents": "documents",
+  "au": "au",
+  "status": {
+    "approved": "APPROUVÉ",
+    "pending": "EN ATTENTE",
+    "draft": "BROUILLON",
+    "rejected": "REJETÉ"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "aria_label": "Notifications",
+    "aria_label_with_count": "Notifications ({{count}} non lues)",
+    "clear_all": "Tout effacer",
+    "empty_title": "Aucune notification",
+    "empty_description": "Les événements apparaîtront ici",
+    "unread_singular": "non lue",
+    "unread_plural": "non lues",
+    "time": {
+      "seconds": "s",
+      "minutes": "min",
+      "hours": "h",
+      "days": "j"
+    }
+  }
 }

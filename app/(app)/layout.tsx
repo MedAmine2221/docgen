@@ -9,8 +9,10 @@ import { getInitials, handleLogout } from "@/utils/functions";
 import { useRouter, usePathname } from "next/navigation";
 import { useState } from "react";
 import { useSelector } from "react-redux";
+import { useTranslation } from "react-i18next";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const { t } = useTranslation('layout');
   const router   = useRouter();
   const pathname = usePathname();
   const [showConfirmLogout, setShowConfirmLogout] = useState(false);
@@ -21,6 +23,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
   
   const isActive = (path: string) => pathname.startsWith(path);
   const profil = useSelector((state: any) => state.profil?.profil);
+
+  // Obtenir le label du titre de la page courante
+  const getCurrentPageLabel = () => {
+    const allNavItems = me?.role?.name_eng === "ADMIN" 
+      ? [...NAV_ITEMS, ...NAV_BOTTOM]
+      : me?.role?.name_eng === "CLIENT" 
+        ? [...NAV_CLIENT_ITEMS, ...NAV_BOTTOM]
+        : [...NAV_ITEMS_Dev, ...NAV_BOTTOM];
+    
+    const currentItem = allNavItems.find((i) => isActive(i.path));
+    if (currentItem) {
+      // Utiliser la clé de traduction stockée dans labelKey
+      const labelKey = (currentItem as any).labelKey || currentItem.label?.toLowerCase().replace(/\s+/g, '_');
+      return t(labelKey, (currentItem as any).label || "Dashboard");
+    }
+    return t('nav.dashboard');
+  };
+
+  // Filtrer les éléments pour n'afficher que ceux avec disabled === true
+  const getNavItems = () => {
+    const items = me?.role?.name_eng === "ADMIN" 
+      ? NAV_ITEMS 
+      : me?.role?.name_eng === "CLIENT" 
+        ? NAV_CLIENT_ITEMS 
+        : NAV_ITEMS_Dev;
+    return items.filter((item) => item.disabled === true);
+  };
 
   return (
     <div className="flex h-screen bg-neutral-50 overflow-hidden">
@@ -33,7 +62,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className={`h-14 border-b border-neutral-100 flex items-center gap-3 px-4 shrink-0`}>
           <div className="w-8 h-8 rounded-lg bg-[#c5262e] flex items-center justify-center shrink-0">
             <button
-              onClick={() => router.push("/admin")}
+              onClick={() => router.push(me?.role?.name_eng === "ADMIN" ? "/admin" : me?.role?.name_eng === "CLIENT" ? "/client" : "/developer")}
               className="cursor-pointer text-white text-xs font-semibold"
             >
               DG
@@ -51,34 +80,33 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 p-2 space-y-0.5 overflow-y-auto">
           {!collapsed && (
             <p className="px-3 pt-3 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
-              Principal
+              {t('main')}
             </p>
           )}
-          {(me?.role?.name_eng === "ADMIN"? NAV_ITEMS : me?.role?.name_eng === "CLIENT"? NAV_CLIENT_ITEMS : NAV_ITEMS_Dev).map(
-            (item) =>
-              item.disabled && (
-                <NavButton
-                  key={item.path}
-                  item={item}
-                  active={isActive(item.path)}
-                  collapsed={collapsed}
-                  onClick={() => router.push(item.path)}
-                />
-              )
-          )}
-
-          {!collapsed && (
-            <p className="px-3 pt-4 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
-              Paramètres
-            </p>
-          )}
-          {NAV_BOTTOM.map((item) => (
+          {getNavItems().map((item) => (
             <NavButton
               key={item.path}
               item={item}
               active={isActive(item.path)}
               collapsed={collapsed}
               onClick={() => router.push(item.path)}
+              t={t}
+            />
+          ))}
+
+          {!collapsed && (
+            <p className="px-3 pt-4 pb-1 text-xs font-medium text-neutral-400 uppercase tracking-wide">
+              {t('settings')}
+            </p>
+          )}
+          {NAV_BOTTOM.filter(item => item.disabled === true).map((item) => (
+            <NavButton
+              key={item.path}
+              item={item}
+              active={isActive(item.path)}
+              collapsed={collapsed}
+              onClick={() => router.push(item.path)}
+              t={t}
             />
           ))}
         </nav>
@@ -95,26 +123,25 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
               onClick={() => setCollapsed((v) => !v)}
               className="w-8 h-8 rounded-lg flex items-center justify-center text-neutral-400
                          hover:bg-neutral-100 hover:text-neutral-700 transition-colors"
-              title={collapsed ? "Déplier le menu" : "Réduire le menu"}
+              title={collapsed ? t('expand_menu') : t('collapse_menu')}
             >
               <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
                 <path d="M1.5 3.5h13M1.5 8h13M1.5 12.5h13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
               </svg>
             </button>
             <span className="text-sm font-medium text-neutral-900">
-              {(me?.role?.name_eng === "ADMIN"? [...NAV_ITEMS, ...NAV_BOTTOM]: me?.role?.name_eng === "CLIENT"? [...NAV_CLIENT_ITEMS, ...NAV_BOTTOM] :  [...NAV_ITEMS_Dev, ...NAV_BOTTOM]).find((i) => isActive(i.path))?.label ?? "Dashboard"}
+              {getCurrentPageLabel()}
             </span>
           </div>
 
           <div className="flex items-center gap-2">
-            {/* Notification bell placeholder */}
             <NotificationBell />
             <div className="relative">
               <button
                 onClick={() => setOpenProfileMenu((prev) => !prev)}
                 className="cursor-pointer w-8 h-8 rounded-full bg-[#c5262e]/10 flex items-center justify-center
                           text-xs font-semibold text-[#c5262e] hover:bg-[#c5262e]/20 transition-colors"
-                title="Mon profil"
+                title={t('my_profile')}
               >
                 {getInitials(profil?.name ?? "")}
               </button>
@@ -129,7 +156,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-neutral-700 hover:bg-neutral-100 transition"
                   >
-                    Mon profil
+                    {t('my_profile')}
                   </button>
 
                   <button
@@ -139,7 +166,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                     }}
                     className="w-full text-left px-4 py-2 text-sm text-red-500 hover:bg-red-50 transition"
                   >
-                    Déconnexion
+                    {t('logout')}
                   </button>
                 </div>
               )}
@@ -157,14 +184,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <Modal
         open={showConfirmLogout}
         onClose={() => setShowConfirmLogout(false)}
-        title="Déconnecter"
+        title={t('logout_confirm_title')}
         footer={
           <>
             <button
               onClick={() => setShowConfirmLogout(false)}
               className="px-4 py-2 text-sm rounded-lg border border-neutral-200 text-neutral-600 hover:bg-neutral-50 transition"
             >
-              Annuler
+              {t('cancel')}
             </button>
             <button
               onClick={() => handleLogout(setSaving, router)}
@@ -173,14 +200,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                          hover:bg-red-600 disabled:opacity-60 transition flex items-center gap-2"
             >
               {saving && <Spinner white />}
-              Déconnecter
+              {t('logout')}
             </button>
           </>
         }
       >
         <p className="text-sm text-neutral-600">
-          Voulez-vous vraiment vous déconnecter ?<br />
-          Cette action est irréversible.
+          {t('logout_confirm_message')}<br />
+          {t('action_irreversible')}
         </p>
       </Modal>
     </div>
@@ -193,16 +220,22 @@ function NavButton({
   active,
   collapsed,
   onClick,
+  t,
 }: {
-  item: { path: string; icon: React.ReactNode; label: string };
+  item: { path: string; icon: React.ReactNode; label?: string; labelKey?: string };
   active: boolean;
   collapsed: boolean;
   onClick: () => void;
+  t: (key: string, fallback?: string) => string;
 }) {
+  // Utiliser labelKey s'il existe, sinon convertir l'ancien label en clé
+  const labelKey = (item as any).labelKey || `nav.${item.label?.toLowerCase().replace(/\s+/g, '_') || 'unknown'}`;
+  const translatedLabel = t(labelKey, (item as any).label || "");
+  
   return (
     <button
       onClick={onClick}
-      title={collapsed ? item.label : undefined}
+      title={collapsed ? translatedLabel : undefined}
       className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors text-left
         ${collapsed ? "justify-center" : ""}
         ${active
@@ -211,7 +244,7 @@ function NavButton({
         }`}
     >
       <span className={active ? "text-[#c5262e]" : "text-neutral-400"}>{item.icon}</span>
-      {!collapsed && item.label}
+      {!collapsed && translatedLabel}
     </button>
   );
 }

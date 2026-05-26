@@ -1,0 +1,26 @@
+{
+  "main": "Principal",
+  "settings": "Paramètres",
+  "dashboard": "Tableau de bord",
+  "expand_menu": "Déplier le menu",
+  "collapse_menu": "Réduire le menu",
+  "my_profile": "Mon profil",
+  "logout": "Déconnexion",
+  "logout_confirm_title": "Déconnecter",
+  "logout_confirm_message": "Voulez-vous vraiment vous déconnecter ?",
+  "action_irreversible": "Cette action est irréversible.",
+  "cancel": "Annuler",
+  "nav": {
+    "dashboard": "Tableau de bord",
+    "admin_dashboard": "Page d'accueil Admin",
+    "users_management": "Gérer les utilisateurs",
+    "documents_management": "Gérer les documents",
+    "history": "Historique",
+    "profile": "Gérer mon profil",
+    "my_profile": "Mon profil",
+    "settings": "Paramètres",
+    "dev_dashboard": "Tableau de bord Développeur",
+    "manage_docs": "Gérer les documents",
+    "client_dashboard": "Tableau de bord Client"
+  }
+}
