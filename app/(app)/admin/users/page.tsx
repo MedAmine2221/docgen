@@ -161,6 +161,7 @@ export default function UsersPage() {
       </div>
     );
   }
+console.log("filteredUsers", filteredUsers);
 
   return (
     <div className="space-y-6 p-6 bg-linear-to-br from-gray-50 to-gray-100 min-h-screen">
@@ -281,7 +282,7 @@ export default function UsersPage() {
                       )}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-gray-700">{u.docs?.length || 0}</span>
+                      <span className="font-semibold text-gray-700">{u.assignedDocs?.length || u.docs?.length || 0}</span>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-2">
