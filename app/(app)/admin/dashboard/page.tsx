@@ -258,7 +258,6 @@ console.log('Langue actuelle:', i18n.language);
         {/* Dev ranking */}
         <div className="bg-white rounded-xl border border-neutral-100 p-5">
           <p className="text-sm font-medium text-neutral-800">{t('graphQuatreTitle')}</p>
-          <p className="text-xs text-neutral-400 mt-0.5 mb-4">{t('graphQuatreDesc')}</p>
           <div className="space-y-0 divide-y divide-neutral-100">
             {users.map((dev) => (
               <div key={dev.email} className="flex items-center gap-3 py-3">
