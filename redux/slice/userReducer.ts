@@ -51,13 +51,15 @@ const usersSlice = createSlice({
       })
       .addCase(addUser.fulfilled, (state, action) => {
         state.loading = false;
-        console.log("heeeeeeee");
         
         if(action.payload.role.id === "1"){
           state.users.push({...action.payload, role: {id: "1", name_fr: "ADMIN", name_eng: "ADMIN"}});
         }
         else if(action.payload.role.id === "2"){
           state.users.push({...action.payload, role: {id: "1", name_fr: "DÉVELOPPEUR", name_eng: "DEVELOPER"}});
+        }
+        else if(action.payload.role.id === "3"){
+          state.users.push({...action.payload, role: {id: "1", name_fr: "CLIENT", name_eng: "CLIENT"}});
         }
       })
       .addCase(addUser.rejected, (state, action) => {

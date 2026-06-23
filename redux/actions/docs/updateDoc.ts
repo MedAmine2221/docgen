@@ -69,7 +69,7 @@ export const updateDoc = createAsyncThunk(
             bearerToken: docData.bearerToken,
             user_creator:
               docData.user_creator?.id ||
-              docData.user_creator,
+              docData?.user_creator,
             cause: docData?.cause,
           }),
         }
@@ -90,12 +90,12 @@ export const updateDoc = createAsyncThunk(
       // =========================================================
 
       if (
-        docData.apisToDelete &&
-        docData.apisToDelete.length > 0
+        docData?.apisToDelete &&
+        docData?.apisToDelete.length > 0
       ) {
         await Promise.all(
           docData.apisToDelete.map((api: any) =>
-            fetch(`http://localhost:3001/apis/${api.id}`, {
+            fetch(`http://localhost:3001/apis/${api?.id}`, {
               method: "DELETE",
               headers,
             })
@@ -108,17 +108,17 @@ export const updateDoc = createAsyncThunk(
       // =========================================================
 
       if (
-        docData.apisToUpdate &&
-        docData.apisToUpdate.length > 0
+        docData?.apisToUpdate &&
+        docData?.apisToUpdate?.length > 0
       ) {
         await Promise.all(
-          docData.apisToUpdate.map((api: any) =>
-            fetch(`http://localhost:3001/apis/${api.id}`, {
+          docData?.apisToUpdate.map((api: any) =>
+            fetch(`http://localhost:3001/apis/${api?.id}`, {
               method: "PUT",
               headers,
               body: JSON.stringify({
-                apiMethod: api.apiMethod,
-                endPoint: api.endPoint,
+                apiMethod: api?.apiMethod,
+                endPoint: api?.endPoint,
               }),
             })
           )
@@ -130,17 +130,17 @@ export const updateDoc = createAsyncThunk(
       // =========================================================
 
       if (
-        docData.apisToAdd &&
-        docData.apisToAdd.length > 0
+        docData?.apisToAdd &&
+        docData?.apisToAdd?.length > 0
       ) {
         await Promise.all(
-          docData.apisToAdd.map((api: any) =>
+          docData?.apisToAdd?.map((api: any) =>
             fetch(`http://localhost:3001/apis/doc/${id}`, {
               method: "POST",
               headers,
               body: JSON.stringify({
-                apiMethod: api.apiMethod,
-                endPoint: api.endPoint,
+                apiMethod: api?.apiMethod,
+                endPoint: api?.endPoint,
               }),
             })
           )
@@ -154,18 +154,18 @@ export const updateDoc = createAsyncThunk(
       const finalDoc = {
         ...updatedDoc,
         apis: [
-          ...(docData.apisToUpdate ?? []).map(
+          ...(docData?.apisToUpdate ?? []).map(
             (api: any) => ({
-              id: api.id,
-              apiMethod: api.apiMethod,
-              endPoint: api.endPoint,
+              id: api?.id,
+              apiMethod: api?.apiMethod,
+              endPoint: api?.endPoint,
             })
           ),
 
-          ...(docData.apisToAdd ?? []).map(
+          ...(docData?.apisToAdd ?? []).map(
             (api: any) => ({
-              apiMethod: api.apiMethod,
-              endPoint: api.endPoint,
+              apiMethod: api?.apiMethod,
+              endPoint: api?.endPoint,
             })
           ),
         ],

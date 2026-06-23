@@ -34,7 +34,7 @@ export const profilSlice = createSlice({
         if (state.profil?.docs) {                    
           const newDoc = {
             ...action.payload,
-            apis: action.payload.apis ?? [],
+            apis: action.payload?.apis ?? [],
           }
           state.profil.docs.push(newDoc);
         }
@@ -43,15 +43,15 @@ export const profilSlice = createSlice({
       .addCase(updateDoc.fulfilled, (state, action) => {
         if (state.profil?.docs) {
           
-          const idx = state.profil.docs.findIndex((d: any) => d.id === action.payload.id);
-          const oldApis = state.profil.docs[idx].apis ?? [];
-          if (idx !== -1) state.profil.docs[idx] = {...action.payload, apis: action.payload.apis ?? oldApis};
+          const idx = state.profil.docs.findIndex((d: any) => d?.id === action.payload?.id);
+          const oldApis = state.profil.docs[idx]?.apis ?? [];
+          if (idx !== -1) state.profil.docs[idx] = {...action.payload, apis: action.payload?.apis ?? oldApis};
         }
       })
 
       .addCase(deleteDoc.fulfilled, (state, action) => {
         if (state.profil?.docs) {
-          state.profil.docs = state.profil.docs.filter((d: any) => d.id !== action.payload);
+          state.profil.docs = state.profil?.docs.filter((d: any) => d?.id !== action.payload);
         }
       });
   },

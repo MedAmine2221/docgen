@@ -319,12 +319,12 @@ export default function Docs() {
           bearerToken: doc.bearerToken,
           user_creator: doc.user_creator,
           status: status,
-          apisToUpdate: doc.apis?.filter(api => api.id).map(api => ({
+          apisToUpdate: doc.apis?.filter((api:any) => api?.id).map((api:any) => ({
             id: api.id,
             apiMethod: api.apiMethod,
             endPoint: api.endPoint
           })) || [],
-          apisToAdd: doc.apis?.filter(api => !api.id).map(api => ({
+          apisToAdd: doc.apis?.filter((api:any) => !api?.id).map((api: any) => ({
             apiMethod: api.apiMethod,
             endPoint: api.endPoint
           })) || [],

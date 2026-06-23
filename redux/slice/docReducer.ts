@@ -34,6 +34,8 @@ const docsSlice = createSlice({
       
       // Update Doc
       .addCase(updateDoc.fulfilled, (state, action) => {
+        console.log("action.payload ", action.payload);
+        
         const index = state.docs.findIndex(doc => doc.id === action.payload.id);
         if (index !== -1) {
           state.docs[index] = action.payload; // Mise à jour directe dans la liste
@@ -41,7 +43,7 @@ const docsSlice = createSlice({
       })
       // Delete Doc
       .addCase(deleteDoc.fulfilled, (state, action) => {        
-        state.docs = state.docs.filter(doc => doc.id !== action.payload); // Suppression directe
+        state.docs = state.docs.filter((doc: any) => doc?.id !== action.payload); // Suppression directe
       });
   },
 });

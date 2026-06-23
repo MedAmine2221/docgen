@@ -284,7 +284,6 @@ console.log('Langue actuelle:', i18n.language);
           </div>
         </div>
       </div>
-
     </div>
   );
 }
