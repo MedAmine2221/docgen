@@ -184,7 +184,7 @@ console.log("filteredUsers", filteredUsers);
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         {[
-          { label: t('total_users'), value: getClientCount(), icon: FiUser, color: "from-purple-500 to-purple-600" },
+          { label: t('total_users'), value: getClientCount(), icon: FiUser, color: "from-blue-500 to-blue-600" },
           { label: t('admins'), value: getAdminCount(), icon: FiShield, color: "from-purple-500 to-purple-600" },
           { label: t('developers'), value: getDeveloperCount(), icon: FiUser, color: "from-green-500 to-green-600" },
         ].map((s) => (
